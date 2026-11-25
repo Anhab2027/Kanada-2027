@@ -1,617 +1,366 @@
 <!DOCTYPE html>
-
 <html lang="de">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
-
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<meta name="theme-color" content="#164b40">
-
+<meta name="theme-color" content="#214e3c">
 <title>Kanada 2027</title>
-
 <style>
-
-* { box-sizing: border-box; }
-
-body {
-
-  margin: 0;
-
-  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-
-  background: #f3f6f4;
-
-  color: #20352e;
-
-}
-
-header {
-
-  background: linear-gradient(135deg, #123e35, #31735e);
-
-  color: white;
-
-  padding: 36px 22px;
-
-}
-
-header h1 {
-
-  margin: 0 0 8px;
-
-  font-size: 32px;
-
-}
-
-header p { margin: 0; opacity: .85; }
-
-main {
-
-  max-width: 800px;
-
-  margin: auto;
-
-  padding: 18px;
-
-}
-
-.card {
-
-  background: white;
-
-  border-radius: 18px;
-
-  padding: 20px;
-
-  margin-bottom: 16px;
-
-  box-shadow: 0 3px 14px #00000008;
-
-}
-
-h2 { margin-top: 0; font-size: 21px; }
-
-input, textarea, button {
-
-  font: inherit;
-
-  border-radius: 10px;
-
-  padding: 13px;
-
-}
-
-input, textarea {
-
-  width: 100%;
-
-  border: 1px solid #ccd8d2;
-
-  margin-bottom: 12px;
-
-  background: #fafcfb;
-
-}
-
-textarea {
-
-  min-height: 180px;
-
-  resize: vertical;
-
-}
-
-button {
-
-  border: none;
-
-  background: #21634f;
-
-  color: white;
-
-  cursor: pointer;
-
-}
-
-button:disabled { opacity: .5; }
-
-nav {
-
-  display: grid;
-
-  grid-template-columns: repeat(4, 1fr);
-
-  gap: 5px;
-
-  margin-bottom: 18px;
-
-}
-
-nav button {
-
-  font-size: 12px;
-
-  padding: 12px 3px;
-
-}
-
-nav button.active {
-
-  background: #123e35;
-
-}
-
-.amount {
-
-  font-size: 28px;
-
-  font-weight: bold;
-
-}
-
-.muted {
-
-  color: #64766e;
-
-  font-size: 14px;
-
-}
-
-[hidden] { display: none !important; }
-
-#logout {
-
-  background: #e4ebe7;
-
-  color: #20352e;
-
-}
-
-footer {
-
-  text-align: center;
-
-  color: #74847c;
-
-  padding: 20px;
-
-  font-size: 12px;
-
-}
-
+*{box-sizing:border-box}
+body{margin:0;background:#f5f5ef;color:#20352e;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif}
+header{background:#214e3c;color:white;padding:calc(18px + env(safe-area-inset-top)) 22px 18px}
+header h1{font-size:22px;margin:0}
+main{max-width:900px;margin:auto;padding:16px 16px 110px}
+.card{background:white;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 3px 15px #20352e0a}
+h2{font-size:20px;margin:0 0 14px;color:#214e3c}
+p{line-height:1.5}
+input,textarea,button{font:inherit;border-radius:12px;padding:13px}
+input,textarea{width:100%;border:1px solid #ccd8d2;margin-bottom:12px;background:#fafcfb;font-size:16px}
+textarea{min-height:180px}
+button{border:0;background:#21634f;color:white;cursor:pointer;min-height:44px}
+button:disabled{opacity:.5}
+[hidden]{display:none!important}
+.muted{color:#64766e;font-size:14px}
+.hero{overflow:hidden;padding:0;background:#e6ede2}
+.hero img{width:100%;height:clamp(160px,35vw,320px);object-fit:cover;display:block;background:#cbdcc9}
+.hero-content{padding:22px}
+.eyebrow{font-size:11px;letter-spacing:2px;color:#51735c;font-weight:bold}
+.amount{font-size:32px;font-weight:bold;color:#214e3c}
+.count{display:flex;align-items:center;gap:14px}
+.count .amount{font-size:48px}
+.regions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.region{overflow:hidden;background:white;border-radius:16px}
+.region:last-child{grid-column:1/-1}
+.region img{width:100%;height:145px;object-fit:cover;display:block;background:#dce8d9}
+.region:last-child img{height:180px}
+.region div{padding:14px}
+.region small{display:block;color:#64766e;margin-top:5px}
+.line{padding:12px 0;border-top:1px solid #e5ebe4}
+.bar{height:10px;background:#e4ebe1;border-radius:10px;overflow:hidden;margin:16px 0}
+.split{display:flex;justify-content:space-between;gap:12px}
+.split strong{display:block;margin-top:5px}
+.link{background:transparent;color:#21634f;padding:8px 0;text-align:left;font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dce4dc;display:flex;justify-content:center;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav button{background:white;color:#64766e;flex:1;max-width:180px;font-size:11px;padding:6px 2px}
+nav button span{display:block;font-size:23px;margin-bottom:4px}
+nav button.active{color:#214e3c;background:#e6ede2;font-weight:bold}
+footer{text-align:center;color:#64766e;font-size:12px;padding:12px}
+#logout{background:#e4ebe7;color:#20352e}
+button:focus-visible{outline:3px solid #8bb59a;outline-offset:2px}
 </style>
-
 </head>
-
 <body>
 
 <header>
-
-  <h1>🍁 Kanada 2027</h1>
-
-  <p>Unser Familienabenteuer</p>
-
+<h1>🍁 Kanada 2027</h1>
 </header>
 
 <main>
 
 <div id="loginCard" class="card">
-
-  <h2>Willkommen</h2>
-
-  <p>Melde dich an, um deine Reise zu öffnen.</p>
-
-  <form id="loginForm">
-
-    <input id="email" type="email"
-
-      placeholder="E-Mail-Adresse"
-
-      autocomplete="username" required>
-
-    <input id="password" type="password"
-
-      placeholder="Passwort"
-
-      autocomplete="current-password" required>
-
-    <button id="loginButton" type="submit">
-
-      Anmelden
-
-    </button>
-
-  </form>
-
-  <p id="loginStatus" role="status">
-
-    Verbindung wird aufgebaut …
-
-  </p>
-
+<h2>Willkommen</h2>
+<p>Melde dich an, um deine Reise zu öffnen.</p>
+<form id="loginForm">
+<input id="email" type="email" placeholder="E-Mail-Adresse" autocomplete="username" required>
+<input id="password" type="password" placeholder="Passwort" autocomplete="current-password" required>
+<button id="loginButton" type="submit">Anmelden</button>
+</form>
+<p id="loginStatus" role="status">Verbindung wird aufgebaut …</p>
 </div>
 
 <div id="app" hidden>
 
-  <nav>
+<nav>
+<button data-page="overview"><span>🏠</span>Start</button>
+<button data-page="days"><span>📅</span>Tagesplan</button>
+<button data-page="route"><span>🗺️</span>Route</button>
+<button data-page="budget"><span>💶</span>Budget</button>
+<button data-page="more"><span>☰</span>Mehr</button>
+</nav>
 
-    <button data-page="overview">🏠 Übersicht</button>
+<section id="overview" class="page">
 
-    <button data-page="days">📅 Tagesplan</button>
+<div class="card hero">
+<img src="https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Waldlandschaft" onerror="this.hidden=true">
+<div class="hero-content">
+<div class="eyebrow">UNSER FAMILIENABENTEUER</div>
+<h2 style="font-size:27px;margin:10px 0">Die Wildnis wartet.</h2>
+<div class="count">
+<div class="amount" id="countdown"></div>
+<div>Tage bis Kanada<br><small>Sommer 2027</small></div>
+</div>
+</div>
+</div>
 
-    <button data-page="budget">💶 Budget</button>
+<h2>Unsere Reise</h2>
 
-    <button data-page="notes">📝 Notizen</button>
+<div class="regions">
 
-  </nav>
+<div class="region">
+<img src="https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="Stadtlandschaft" loading="lazy" onerror="this.hidden=true">
+<div>
+<strong>Vancouver</strong>
+<small>Stadt &amp; Entdecken</small>
+</div>
+</div>
 
-  <section id="overview" class="page">
+<div class="region">
+<img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="Grüner Wald" loading="lazy" onerror="this.hidden=true">
+<div>
+<strong>Vancouver Island</strong>
+<small>Wildnis &amp; Meer</small>
+</div>
+</div>
 
-    <div class="card">
-
-      <h2>Unsere Kanada-Reise</h2>
-
-      <p>Sommer 2027</p>
-
-      <p>Vancouver · Vancouver Island · British Columbia</p>
-
-    </div>
-
-    <div class="card">
-
-      <h2>Bis zum Abenteuer</h2>
-
-      <div class="amount" id="countdown"></div>
-
-      <p class="muted">Bis zum 18. Juli 2027</p>
-
-    </div>
-
-    <div class="card">
-
-      <h2>Reiseorganisation</h2>
-
-      <p>Hier entsteht unsere persönliche Reiseplanung.</p>
-
-      <p id="connectionStatus" role="status"></p>
-
-    </div>
-
-  </section>
-
-  <section id="days" class="page" hidden>
-
-    <div class="card">
-
-      <h2>📅 Tagesplanung</h2>
-
-      <p>Hier ergänzen wir später unsere vollständige Route mit Aktivitäten, Unterkünften und Fahrzeiten.</p>
-
-    </div>
-
-  </section>
-
-  <section id="budget" class="page" hidden>
-
-    <div class="card">
-
-      <h2>💶 Reisebudget</h2>
-
-      <p>Hier entsteht unsere Kostenübersicht mit bezahlten und offenen Beträgen.</p>
-
-    </div>
-
-  </section>
-
-  <section id="notes" class="page" hidden>
-
-    <div class="card">
-
-      <h2>📝 Reisenotizen</h2>
-
-      <textarea id="noteText"
-
-        placeholder="Unsere Reisenotizen …"
-
-        disabled></textarea>
-
-      <button id="saveNotes" disabled>
-
-        Notizen speichern
-
-      </button>
-
-      <p id="noteStatus" class="muted" role="status"></p>
-
-    </div>
-
-  </section>
-
-  <button id="logout">Abmelden</button>
+<div class="region">
+<img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&amp;fit=crop&amp;w=1000&amp;q=80" alt="Berglandschaft" loading="lazy" onerror="this.hidden=true">
+<div>
+<strong>British Columbia</strong>
+<small>Berge &amp; Abenteuer</small>
+</div>
+</div>
 
 </div>
 
-</main>
+<button class="link" data-go="route">Route ansehen →</button>
 
-<footer>Kanada 2027 · Version 1.0</footer>
+<div class="card">
+<h2>📅 Nächste Buchungen</h2>
+<div class="line">Campingplätze</div>
+<div class="line">Fährüberfahrten</div>
+<small class="muted">Buchungstermine folgen.</small>
+</div>
+
+<div class="card">
+<h2>💶 Reisebudget</h2>
+<div class="amount">– €</div>
+<div class="bar"></div>
+<div class="split">
+<div class="muted">Bezahlt<strong>– €</strong></div>
+<div class="muted">Noch offen<strong>– €</strong></div>
+</div>
+<button class="link" data-go="budget">Budget ansehen →</button>
+</div>
+
+<div class="card">
+<h2>☑ Reisevorbereitungen</h2>
+<p class="muted">Hier entsteht unsere Aufgabenliste.</p>
+</div>
+
+<p id="connectionStatus" class="muted" role="status"></p>
+
+</section>
+
+<section id="days" class="page" hidden>
+<div class="card">
+<h2>📅 Tagesplanung</h2>
+<p>Hier ergänzen wir später unsere vollständige Route mit Aktivitäten, Unterkünften und Fahrzeiten.</p>
+</div>
+</section>
+
+<section id="route" class="page" hidden>
+<div class="card">
+<h2>🗺️ Unsere Route</h2>
+<p>Vancouver · Vancouver Island · British Columbia</p>
+<p class="muted">Die detaillierten Etappen und Karten folgen.</p>
+</div>
+</section>
+
+<section id="budget" class="page" hidden>
+<div class="card">
+<h2>💶 Reisebudget</h2>
+<p class="muted">Hier entsteht unsere geschützte Kostenübersicht.</p>
+<div class="amount">– €</div>
+<p>Bezahlt: – €</p>
+<p>Noch offen: – €</p>
+</div>
+</section>
+
+<section id="more" class="page" hidden>
+<div class="card">
+<h2>📝 Reisenotizen</h2>
+<textarea id="noteText" placeholder="Unsere Reisenotizen …" disabled></textarea>
+<button id="saveNotes" disabled>Notizen speichern</button>
+<p id="noteStatus" class="muted" role="status"></p>
+</div>
+<button id="logout">Abmelden</button>
+</section>
+
+</div>
+
+<footer>Kanada 2027 · Version 1.1</footer>
+
+</main>
 
 <script type="module">
 
-import { initializeApp } from
-
-"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 
 import {
-
-  getAuth,
-
-  signInWithEmailAndPassword,
-
-  onAuthStateChanged,
-
-  signOut
-
-} from
-
-"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+getAuth,
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 import {
-
-  getFirestore,
-
-  doc,
-
-  getDoc,
-
-  setDoc
-
-} from
-
-"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+getFirestore,
+doc,
+getDoc,
+setDoc
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
-
-  apiKey: "AIzaSyArDGIzmusBfuOZQVcV68KfWw_33siiVXk",
-
-  authDomain: "kanada-2027-a6b64.firebaseapp.com",
-
-  projectId: "kanada-2027-a6b64",
-
-  storageBucket: "kanada-2027-a6b64.firebasestorage.app",
-
-  messagingSenderId: "943942847706",
-
-  appId: "1:943942847706:web:f21d0bd660c49f7fd329e3"
-
+apiKey: "AIzaSyArDGIzmusBfuOZQVcV68KfWw_33siiVXk",
+authDomain: "kanada-2027-a6b64.firebaseapp.com",
+projectId: "kanada-2027-a6b64",
+storageBucket: "kanada-2027-a6b64.firebasestorage.app",
+messagingSenderId: "943942847706",
+appId: "1:943942847706:web:f21d0bd660c49f7fd329e3"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
-
 const auth = getAuth(firebaseApp);
-
 const db = getFirestore(firebaseApp);
-
 const el = id => document.getElementById(id);
 
 let currentUser = null;
 
 function showPage(page) {
-
-  document.querySelectorAll(".page").forEach(section => {
-
-    section.hidden = section.id !== page;
-
-  });
-
-  document.querySelectorAll("nav button").forEach(button => {
-
-    button.classList.toggle("active", button.dataset.page === page);
-
-  });
-
+document.querySelectorAll(".page").forEach(section => {
+section.hidden = section.id !== page;
+});
+document.querySelectorAll("nav button").forEach(button => {
+button.classList.toggle("active", button.dataset.page === page);
+});
+window.scrollTo(0,0);
 }
 
 document.querySelectorAll("nav button").forEach(button => {
+button.addEventListener("click", () => showPage(button.dataset.page));
+});
 
-  button.addEventListener("click", () => {
-
-    showPage(button.dataset.page);
-
-  });
-
+document.querySelectorAll("[data-go]").forEach(button => {
+button.addEventListener("click", () => showPage(button.dataset.go));
 });
 
 showPage("overview");
 
 const today = new Date();
-
-today.setHours(0, 0, 0, 0);
-
-const departure = new Date(2027, 6, 18);
-
-const days = Math.max(0, Math.round(
-
-  (departure - today) / 86400000
-
-));
-
-el("countdown").textContent = days + " Tage";
+today.setHours(0,0,0,0);
+const departure = new Date(2027,6,18);
+el("countdown").textContent = Math.max(0,Math.round((departure-today)/86400000));
 
 el("loginForm").addEventListener("submit", async event => {
 
-  event.preventDefault();
+event.preventDefault();
+el("loginButton").disabled = true;
+el("loginStatus").textContent = "Anmeldung läuft …";
 
-  el("loginButton").disabled = true;
-
-  el("loginStatus").textContent = "Anmeldung läuft …";
-
-  try {
-
-    await signInWithEmailAndPassword(
-
-      auth,
-
-      el("email").value.trim(),
-
-      el("password").value
-
-    );
-
-    el("password").value = "";
-
-  } catch (error) {
-
-    el("loginStatus").textContent =
-
-      "Anmeldung fehlgeschlagen: " + error.code;
-
-  } finally {
-
-    el("loginButton").disabled = false;
-
-  }
+try {
+await signInWithEmailAndPassword(
+auth,
+el("email").value.trim(),
+el("password").value
+);
+el("password").value = "";
+} catch(error) {
+el("loginStatus").textContent = "Anmeldung fehlgeschlagen: " + error.code;
+} finally {
+el("loginButton").disabled = false;
+}
 
 });
 
 onAuthStateChanged(auth, async user => {
 
-  currentUser = user;
+currentUser = user;
+el("loginCard").hidden = !!user;
+el("app").hidden = !user;
+el("noteText").value = "";
+el("noteText").disabled = true;
+el("saveNotes").disabled = true;
+el("noteStatus").textContent = "";
 
-  el("loginCard").hidden = !!user;
+if(user) {
 
-  el("app").hidden = !user;
+showPage("overview");
+el("connectionStatus").textContent = "Angemeldet – Datenbank wird geprüft …";
 
-  el("noteText").value = "";
+try {
 
-  el("noteText").disabled = true;
+const snapshot = await getDoc(
+doc(db,"users",user.uid,"travel","notes")
+);
 
-  el("saveNotes").disabled = true;
+if(currentUser?.uid !== user.uid) return;
 
-  el("noteStatus").textContent = "";
+el("noteText").value = snapshot.exists()
+? snapshot.data().text || ""
+: "";
 
-  if (user) {
+el("noteText").disabled = false;
+el("saveNotes").disabled = false;
+el("connectionStatus").textContent = "✓ Anmeldung und Datenbank verbunden";
+el("noteStatus").textContent = "Notizen aus der Cloud geladen.";
 
-    showPage("overview");
+} catch(error) {
 
-    el("connectionStatus").textContent =
+el("connectionStatus").textContent = "Datenbankfehler: " + error.code;
+el("noteStatus").textContent = "Laden fehlgeschlagen. Bitte erneut anmelden.";
 
-      "Angemeldet – Datenbank wird geprüft …";
+}
 
-    try {
+} else {
 
-      const snapshot = await getDoc(
+el("loginStatus").textContent = "Bitte melde dich an.";
 
-        doc(db, "users", user.uid, "travel", "notes")
-
-      );
-
-      if (currentUser?.uid !== user.uid) return;
-
-      el("noteText").value = snapshot.exists()
-
-        ? snapshot.data().text || ""
-
-        : "";
-
-      el("noteText").disabled = false;
-
-      el("saveNotes").disabled = false;
-
-      el("connectionStatus").textContent =
-
-        "✓ Anmeldung und Datenbank verbunden";
-
-      el("noteStatus").textContent =
-
-        "Notizen aus der Cloud geladen.";
-
-    } catch (error) {
-
-      el("connectionStatus").textContent =
-
-        "Datenbankfehler: " + error.code;
-
-      el("noteStatus").textContent =
-
-        "Laden fehlgeschlagen. Bitte erneut anmelden.";
-
-    }
-
-  } else {
-
-    el("loginStatus").textContent =
-
-      "Bitte melde dich an.";
-
-  }
+}
 
 });
 
 el("saveNotes").addEventListener("click", async () => {
 
-  if (!currentUser) return;
+if(!currentUser) return;
 
-  const user = currentUser;
+const user = currentUser;
+const text = el("noteText").value;
 
-  const text = el("noteText").value;
+el("saveNotes").disabled = true;
+el("noteStatus").textContent = "Speichern läuft …";
 
-  el("saveNotes").disabled = true;
+try {
 
-  el("noteStatus").textContent = "Speichern läuft …";
+await setDoc(
+doc(db,"users",user.uid,"travel","notes"),
+{text:text},
+{merge:true}
+);
 
-  try {
+if(currentUser?.uid === user.uid) {
+el("noteStatus").textContent = "✓ In der Cloud gespeichert";
+}
 
-    await setDoc(
+} catch(error) {
 
-      doc(db, "users", user.uid, "travel", "notes"),
+el("noteStatus").textContent = "Speichern fehlgeschlagen: " + error.code;
 
-      { text: text },
+} finally {
 
-      { merge: true }
+if(currentUser?.uid === user.uid) {
+el("saveNotes").disabled = false;
+}
 
-    );
-
-    if (currentUser?.uid === user.uid) {
-
-      el("noteStatus").textContent =
-
-        "✓ In der Cloud gespeichert";
-
-    }
-
-  } catch (error) {
-
-    el("noteStatus").textContent =
-
-      "Speichern fehlgeschlagen: " + error.code;
-
-  } finally {
-
-    if (currentUser?.uid === user.uid) {
-
-      el("saveNotes").disabled = false;
-
-    }
-
-  }
+}
 
 });
 
 el("logout").addEventListener("click", async () => {
-
-  await signOut(auth);
-
+await signOut(auth);
 });
 
 </script>
-
 </body>
-
 </html>
