@@ -578,6 +578,12 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="stayState">Buchungsstatus</label><select id="stayState"><option>Geplant</option><option>Gebucht</option><option>Noch zu buchen</option></select>
 <label for="stayAddress">Adresse</label><input id="stayAddress" maxlength="300">
 <label for="stayLink">Buchungslink</label><input id="stayLink" type="url">
+<label for="stayPhone">Telefon</label><input id="stayPhone" type="tel" maxlength="80">
+<label for="stayEmail">E-Mail</label><input id="stayEmail" type="email" maxlength="254">
+<label for="stayPreference">Stellplatzwünsche</label><textarea id="stayPreference" maxlength="2000"></textarea>
+<label for="stayAmenities">Ausstattung</label><textarea id="stayAmenities" maxlength="2000"></textarea>
+<label for="stayDirections">Besondere Anfahrtshinweise</label><textarea id="stayDirections" maxlength="2000"></textarea>
+<label for="stayWebsite">Homepage</label><input id="stayWebsite" type="url">
 <label for="stayNote">Hinweise</label><textarea id="stayNote" maxlength="5000"></textarea>
 <div class="form-actions"><button id="staySave" type="submit" disabled>Unterkunft speichern</button>
 <button id="stayNew" type="button" class="link">Neuer Eintrag</button></div>
@@ -628,7 +634,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.4.6 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.5.1 · Testversion</footer>
 
 </main>
 
@@ -760,7 +766,7 @@ el("importApply").onclick=()=>{if(!bkReady||!stayReady||bkBusy||stayBusy)return;
 el("bookingAdd").onclick=()=>{if(!bkBusy){resetBooking();el("bookingForm").hidden=false;el("bookingAdd").hidden=true;el("bookingHeading").scrollIntoView({block:"start"});}};el("bookingNew").textContent="Abbrechen";el("bookingNew").onclick=()=>{if(!bkBusy)resetBooking();};
 el("bookingForm").addEventListener("submit",e=>{e.preventDefault();if(!bkReady||bkBusy)return;const item={id:bkEdit||crypto.randomUUID()};for(const k of bkFields)item[k]=el("bk"+k).value.trim();if(item.Link&&!/^https?:\/\//i.test(item.Link)){el("bookingStatus").textContent="Bitte HTTPS- oder HTTP-Link eingeben.";return;}persistBookings([...bookings.filter(x=>x.id!==item.id),item]);});
 
-const stayFields=["Name","Type","In","InTime","Out","OutTime","Room","State","Address","Link","Note"];
+const stayFields=["Name","Type","In","InTime","Out","OutTime","Room","State","Address","Link","Note","Phone","Email","Preference","Amenities","Directions","Website"];
 let stays=[],stayEdit=null,stayReady=false,stayEpoch=0,stayBusy=false;
 function resetStay(){el("stayForm").hidden=true;el("stayAdd").hidden=false;el("stayForm").reset();stayEdit=null;el("stayHeading").textContent="Unterkunft hinzufügen";}
 function renderDayStay(){
@@ -780,11 +786,14 @@ function renderStays(){
  const p=document.createElement("p");const nights=Math.round((Date.parse(item.Out)-Date.parse(item.In))/86400000);
  p.textContent=item.In.split("-").reverse().join(".")+" – "+item.Out.split("-").reverse().join(".")+" · "+nights+(nights===1?" Nacht":" Nächte");div.append(p);
  const status=document.createElement("span");status.textContent=item.State;status.style.color=item.State==="Gebucht"?"#166534":item.State==="Noch zu buchen"?"#B45309":"#254657";status.style.fontWeight="600";div.append(status);
- for(const value of [item.Room,item.Address,item.Note])if(value){const line=document.createElement("div");line.textContent=value;div.append(line);}
+ for(const [label,value] of [["Stellplatz / Zimmer",item.Room],["Adresse",item.Address],["Stellplatzwünsche",item.Preference],["Ausstattung",item.Amenities],["Anfahrt",item.Directions],["Hinweise",item.Note]])if(value){const line=document.createElement("div");line.style.whiteSpace="pre-wrap";line.style.overflowWrap="anywhere";line.textContent=label+": "+value;div.append(line);}
  const times=document.createElement("div");times.textContent=[item.InTime&&"Check-in "+item.InTime,item.OutTime&&"Check-out "+item.OutTime].filter(Boolean).join(" · ");div.append(times);
  function link(label,url){const a=document.createElement("a");a.textContent=label;a.href=url;a.target="_blank";a.rel="noopener noreferrer";div.append(a);}
  if(item.Address)link("Navigation","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address));
  if(/^https?:\/\//i.test(item.Link||""))link("Buchungslink",item.Link);
+ if(/^https?:\/\//i.test(item.Website||""))link("Homepage",item.Website);
+ if(item.Phone){const number=item.Phone.replace(/[^+0-9]/g,"");if(/^\+?\d{3,20}$/.test(number))link("Telefon: "+item.Phone,"tel:"+number);}
+ if(item.Email&&/^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(item.Email))link("E-Mail: "+item.Email,"mailto:"+item.Email);
  const b=document.createElement("button");b.type="button";b.className="item-edit";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{el("stayForm").hidden=false;el("stayAdd").hidden=true;stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};const actions=document.createElement("div");actions.className="item-actions";actions.append(b);div.append(actions);
  const del=document.createElement("button");del.type="button";del.className="item-delete";del.textContent="Löschen";del.disabled=stayBusy||!stayReady;del.onclick=async()=>{
  if(!currentUser||stayBusy||!stayReady||!confirm("Unterkunft „"+item.Name+"“ wirklich löschen?"))return;
@@ -805,7 +814,7 @@ el("stayForm").addEventListener("submit",async e=>{
  const user=currentUser,epoch=stayEpoch,item={id:stayEdit||crypto.randomUUID()};
  for(const k of stayFields)item[k]=el("stay"+k).value.trim();
  if(item.Out<item.In){el("stayStatus").textContent="Abreise darf nicht vor Anreise liegen.";return;}
- if(item.Link&&!/^https?:\/\//i.test(item.Link)){el("stayStatus").textContent="Bitte einen HTTP- oder HTTPS-Link eingeben.";return;}
+ if([item.Link,item.Website].some(x=>x&&!/^https?:\/\//i.test(x))){el("stayStatus").textContent="Bitte einen HTTP- oder HTTPS-Link eingeben.";return;}
  const next=[...stays.filter(x=>x.id!==item.id),item];stayBusy=true;el("staySave").disabled=true;renderStays();
  try{await setDoc(doc(db,"users",user.uid,"travel","test-accommodations"),{items:next},{merge:true});if(epoch===stayEpoch){stays=next;resetStay();el("stayStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===stayEpoch)el("stayStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{stayBusy=false;el("staySave").disabled=!stayReady;renderStays();}
 });
