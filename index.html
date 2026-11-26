@@ -477,7 +477,15 @@ button:focus-visible {
 <section id="days" class="page" hidden>
 <div class="card">
 <h2>📅 Tagesplanung</h2>
-<p>Hier ergänzen wir später unsere vollständige Route mit Aktivitäten, Unterkünften und Fahrzeiten.</p>
+<p class="muted">Reisetage direkt bearbeiten und speichern.</p>
+<label for="dayDate">Datum</label>
+<input id="dayDate" type="date" min="2027-07-17" value="2027-07-18" disabled>
+<label for="dayTitle">Ort / Etappe</label>
+<input id="dayTitle" maxlength="160" disabled>
+<label for="dayPlan">Aktivitäten, Fahrzeiten und Hinweise</label>
+<textarea id="dayPlan" maxlength="10000" disabled></textarea>
+<button id="saveDay" disabled>Reisetag speichern</button>
+<p id="dayStatus" class="muted" role="status"></p>
 </div>
 </section>
 
@@ -556,7 +564,7 @@ button:focus-visible {
 
 </div>
 
-<footer>Kanada 2027 · Version 1.1</footer>
+<footer>Kanada 2027 · Entwicklung – Tagesplanung</footer>
 
 </main>
 
@@ -593,6 +601,61 @@ const db = getFirestore(firebaseApp);
 const el = id => document.getElementById(id);
 
 let currentUser = null;
+let dayRequest = 0;
+let dayBusy = false;
+let dayLoaded = false;
+function dayControls(enabled) {
+  el("dayTitle").disabled = !enabled;
+  el("dayPlan").disabled = !enabled;
+  el("saveDay").disabled = !enabled;
+}
+async function loadDay() {
+  const request = ++dayRequest;
+  const user = currentUser;
+  const date = el("dayDate").value;
+  dayLoaded = false;
+  dayControls(false);
+  el("dayTitle").value = "";
+  el("dayPlan").value = "";
+  if (!user || !date) return;
+  el("dayStatus").textContent = "Reisetag wird geladen …";
+  try {
+    const snap = await getDoc(doc(db,"users",user.uid,"travel","day-"+date));
+    if (request !== dayRequest || currentUser?.uid !== user.uid) return;
+    const data = snap.data() || {};
+    el("dayTitle").value = data.title || "";
+    el("dayPlan").value = data.plan || "";
+    dayLoaded = true;
+    dayControls(true);
+    el("dayStatus").textContent = snap.exists() ? "Reisetag geladen." : "Noch keine Planung vorhanden.";
+  } catch(error) {
+    if (request === dayRequest) el("dayStatus").textContent = "Laden fehlgeschlagen: "+error.code;
+  }
+}
+el("dayDate").addEventListener("change", loadDay);
+el("saveDay").addEventListener("click", async () => {
+  if (!currentUser || !dayLoaded || dayBusy) return;
+  const user = currentUser;
+  const request = dayRequest;
+  const date = el("dayDate").value;
+  const data = {title:el("dayTitle").value,plan:el("dayPlan").value};
+  dayBusy = true;
+  el("dayDate").disabled = true;
+  dayControls(false);
+  el("dayStatus").textContent = "Speichern läuft …";
+  try {
+    await setDoc(doc(db,"users",user.uid,"travel","day-"+date),data,{merge:true});
+    if (request === dayRequest) el("dayStatus").textContent = "✓ In der Cloud gespeichert";
+  } catch(error) {
+    if (request === dayRequest) el("dayStatus").textContent = "Speichern fehlgeschlagen: "+error.code;
+  } finally {
+    dayBusy = false;
+    if (request === dayRequest && currentUser?.uid === user.uid) {
+      el("dayDate").disabled = false;
+      dayControls(true);
+    }
+  }
+});
 
 function showPage(page) {
 document.querySelectorAll(".page").forEach(section => {
@@ -643,6 +706,14 @@ el("loginButton").disabled = false;
 onAuthStateChanged(auth, async user => {
 
 currentUser = user;
+dayRequest++;
+dayLoaded = false;
+dayControls(false);
+el("dayDate").disabled = !user;
+el("dayTitle").value = "";
+el("dayPlan").value = "";
+el("dayStatus").textContent = "";
+if(user) loadDay();
 el("loginCard").hidden = !!user;
 el("app").hidden = !user;
 el("noteText").value = "";
