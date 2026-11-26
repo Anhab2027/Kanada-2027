@@ -390,7 +390,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 #bookingOpen>.booking-item:nth-child(even),#bookingConfirmed>.booking-item:nth-child(even){background:#E2EDF4}
 #bookingOpen>.booking-item:last-child,#bookingConfirmed>.booking-item:last-child{margin-bottom:0}
 .booking-item .item-edit{background:#D5E5EF}
-</style>
+#hlAdd{width:100%;margin-top:16px;min-height:48px}#hlForm{margin-top:16px}#hlForm select{width:100%}#hlNote{min-height:90px}.hl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.hl-item:nth-child(even){background:#E2EDF4}.hl-item h3{margin:0 0 8px!important}.hl-item p{margin:6px 0;font-size:14px}.hl-item a{display:block;color:#254657;min-height:44px;padding:10px 0;font-weight:600}#hlStatus:empty{display:none}</style>
 </head>
 <body>
 
@@ -537,7 +537,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <div id="dayList" class="day-list" aria-label="Reisetage"></div>
 <label for="dayDate">Datum</label>
 <input id="dayDate" type="date" min="2027-07-17" value="2027-07-18" disabled>
-<div id="dayRoute"></div><div id="dayBookings"></div><div id="dayStay" class="muted" aria-live="polite"></div>
+<div id="dayRoute"></div><div id="dayHighlights"></div><div id="dayBookings"></div><div id="dayStay" class="muted" aria-live="polite"></div>
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayPlan">Aktivitäten, Fahrzeiten und Hinweise</label>
@@ -598,14 +598,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
   </div>
 </section>
 
-<section id="highlights" class="page" hidden>
-  <div class="card">
-    <h2>Highlights</h2>
-    <p>Unsere schönsten Reiseziele und Erlebnisse.</p>
-    <p class="muted">Nationalparks, Strände, Städte, Wanderungen und Ausflüge.</p>
-    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
-  </div>
-</section>
+<section id="highlights" class="page" hidden><div class="card"><h2>Highlights</h2><p>Unsere schönsten Reiseziele und Erlebnisse.</p><div id="hlList"></div><button id="hlAdd" type="button">＋ Highlight hinzufügen</button><form id="hlForm" hidden><h3 id="hlHeading">Highlight hinzufügen</h3><label for="hlName">Name</label><input id="hlName" type="text" required><label for="hlRegion">Region / Ort</label><input id="hlRegion" type="text" ><label for="hlCategory">Kategorie</label><select id="hlCategory"><option>Nationalpark</option><option>Strand</option><option>Wanderung</option><option>Stadt</option><option>Ausflug</option><option>Sonstiges</option></select><label for="hlDate">Geplanter Besuch (optional)</label><input id="hlDate" type="date" ><label for="hlAddress">Adresse / Navigationsziel</label><input id="hlAddress" type="text" ><label for="hlLink">Website</label><input id="hlLink" type="url" ><label for="hlNote">Hinweise</label><textarea id="hlNote"></textarea><div class="form-actions"><button id="hlSave" type="submit">Speichern</button><button id="hlCancel" type="button" class="link">Abbrechen</button></div></form><p id="hlStatus" role="status"></p></div><button class="link" data-go="overview">← Zurück zur Übersicht</button></section>
 
 <section id="checklists" class="page" hidden>
   <div class="card">
@@ -676,6 +669,14 @@ const db = getFirestore(firebaseApp);
 const el = id => document.getElementById(id);
 
 let currentUser = null;
+const hlFields=["Name","Region","Category","Date","Address","Link","Note"];let highlights=[],hlEdit=null,hlReady=false,hlBusy=false,hlEpoch=0;
+function resetHighlights(){hlEdit=null;el("hlForm").reset();el("hlForm").hidden=true;el("hlAdd").hidden=false;}
+function renderDayHighlights(){const box=el("dayHighlights");box.replaceChildren();for(const x of highlights.filter(x=>x.Date===el("dayDate").value)){const p=document.createElement("p");p.className="day-stay-card";p.textContent="★ "+x.Name;box.append(p);}}
+function renderHighlights(){const box=el("hlList");box.replaceChildren();el("hlAdd").disabled=!hlReady||hlBusy;for(const x of [...highlights].sort((a,b)=>(a.Date||"9999").localeCompare(b.Date||"9999")||a.Name.localeCompare(b.Name))){const card=document.createElement("div");card.className="hl-item";const h=document.createElement("h3");h.textContent=x.Name;card.append(h);for(const line of [[x.Category,x.Region,x.Date?x.Date.split("-").reverse().join("."):""].filter(Boolean).join(" · "),x.Address,x.Note])if(line){const p=document.createElement("p");p.textContent=line;card.append(p);}for(const [label,url] of [["Navigation",x.Address?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(x.Address):""],["Website",x.Link]])if(/^https?:\/\//i.test(url||"")){const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=label;card.append(a);}const actions=document.createElement("div");actions.className="item-actions";for(const [label,action] of [["Bearbeiten",()=>{hlEdit=x.id;for(const k of hlFields)el("hl"+k).value=x[k]||"";el("hlHeading").textContent="Highlight bearbeiten";el("hlForm").hidden=false;el("hlAdd").hidden=true;el("hlHeading").scrollIntoView({block:"start"});}],["Löschen",()=>{if(confirm("Highlight „"+x.Name+"“ wirklich löschen?"))saveHighlights(highlights.filter(y=>y.id!==x.id));}]]){const b=document.createElement("button");b.type="button";b.className=label==="Bearbeiten"?"item-edit":"item-delete";b.textContent=label;b.disabled=hlBusy||!hlReady;b.onclick=action;actions.append(b);}card.append(actions);box.append(card);}if(hlReady&&!highlights.length)box.textContent="Noch keine Highlights vorhanden.";renderDayHighlights();}
+async function loadHighlights(user){const epoch=++hlEpoch;highlights=[];hlReady=false;resetHighlights();renderHighlights();el("hlStatus").textContent="";if(!user)return;try{const snap=await getDoc(doc(db,"users",user.uid,"travel","highlights"));if(epoch!==hlEpoch)return;highlights=Array.isArray(snap.data()?.items)?snap.data().items:[];hlReady=true;renderHighlights();}catch(e){if(epoch===hlEpoch)el("hlStatus").textContent="Laden fehlgeschlagen: "+e.code;}}
+async function saveHighlights(next){if(!currentUser||!hlReady||hlBusy)return;const epoch=hlEpoch,user=currentUser;hlBusy=true;el("hlSave").disabled=true;renderHighlights();try{await setDoc(doc(db,"users",user.uid,"travel","highlights"),{items:next},{merge:true});if(epoch===hlEpoch){highlights=next;resetHighlights();el("hlStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===hlEpoch)el("hlStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{hlBusy=false;el("hlSave").disabled=false;renderHighlights();}}
+el("hlAdd").onclick=()=>{resetHighlights();el("hlHeading").textContent="Highlight hinzufügen";el("hlForm").hidden=false;el("hlAdd").hidden=true;};el("hlCancel").onclick=()=>{if(!hlBusy)resetHighlights();};el("hlForm").onsubmit=e=>{e.preventDefault();const x={id:hlEdit||crypto.randomUUID()};for(const k of hlFields)x[k]=el("hl"+k).value.trim();if(!x.Name)return;if(x.Link&&!/^https?:\/\//i.test(x.Link)){el("hlStatus").textContent="Bitte HTTP- oder HTTPS-Link eingeben.";return;}saveHighlights([...highlights.filter(y=>y.id!==x.id),x]);};
+
 const rtFields=["Date","From","To","Mode","Km","Duration","Note"];let routes=[],rtEdit=null,rtReady=false,rtBusy=false,rtEpoch=0;
 function resetRoute(){rtEdit=null;el("routeForm").reset();el("routeForm").hidden=true;el("routeAdd").hidden=false;}
 function renderDayRoute(){const box=el("dayRoute");box.replaceChildren();for(const x of routes.filter(x=>x.Date===el("dayDate").value)){const p=document.createElement("p");p.className="day-stay-card";p.textContent="🗺️ "+x.From+" → "+x.To+(x.Duration?" · "+x.Duration:"");box.append(p);}}
@@ -817,6 +818,7 @@ function dayControls(enabled) {
   el("saveDay").disabled = !enabled;
 }
 async function loadDay() {
+ renderDayHighlights();
  renderDayRoute();
   renderDayBookings();
   renderDayList();
@@ -919,6 +921,7 @@ el("loginButton").disabled = false;
 onAuthStateChanged(auth, async user => {
 
 currentUser = user;
+loadHighlights(user);
 loadRoutes(user);
 loadStays(user);
 loadBookings(user);
