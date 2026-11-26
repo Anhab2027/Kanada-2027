@@ -349,7 +349,7 @@ button:focus-visible {
 input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left}
 .day-list button{white-space:nowrap;flex-basis:88px;font-size:12px;padding:8px 4px}
 }
-</style>
+.day-list button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap;flex-basis:72px;min-height:54px}.day-list button span:last-child{font-weight:600}</style>
 </head>
 <body><div style="background:#854d0e;color:white;text-align:center;padding:10px;font:600 14px system-ui">TESTVERSION – separate Testdaten</div>
 
@@ -685,7 +685,10 @@ function renderDayList(){
   for(let d=new Date(Date.UTC(2027,6,17));d<=new Date(Date.UTC(2027,7,8));d.setUTCDate(d.getUTCDate()+1)){
     const date=d.toISOString().slice(0,10);
     const b=document.createElement("button");
-    b.type="button";b.textContent=format.format(d);b.dataset.date=date;
+    b.type="button";b.dataset.date=date;
+    const weekday=document.createElement("span");weekday.textContent=new Intl.DateTimeFormat("de-DE",{weekday:"short",timeZone:"UTC"}).format(d);
+    const dateLabel=document.createElement("span");dateLabel.textContent=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit",timeZone:"UTC"}).format(d);
+    b.append(weekday,dateLabel);b.setAttribute("aria-label",format.format(d));
     b.setAttribute("aria-pressed",String(date===el("dayDate").value));
     b.disabled=el("dayDate").disabled;
     b.addEventListener("click",()=>{if(el("dayDate").disabled)return;el("dayDate").value=date;loadDay();});
