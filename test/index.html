@@ -349,7 +349,7 @@ button:focus-visible {
 input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left}
 .day-list button{white-space:nowrap;flex-basis:88px;font-size:12px;padding:8px 4px}
 }
-.day-list button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap;flex-basis:72px;min-height:54px}.day-list button span:last-child{font-weight:600}</style>
+.day-list button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap;flex-basis:72px;min-height:54px}.day-list button span:last-child{font-weight:600}#bookingForm label{display:block;font-weight:600;margin:8px 0 4px}#bookingForm select{width:100%;font:inherit;font-size:16px;padding:12px;border:1px solid #A9C5D8;border-radius:12px;background:white;color:#254657;margin-bottom:12px}#bkNote{min-height:90px}.booking-item{padding:12px 0;border-bottom:1px solid #A9C5D8;overflow-wrap:anywhere}.booking-item button,.booking-item a{margin:8px 12px 0 0}.booking-item a{display:inline-block;padding:10px 0;color:#254657}@media(max-width:759px){#bookingSave{width:100%}} </style>
 </head>
 <body><div style="background:#854d0e;color:white;text-align:center;padding:10px;font:600 14px system-ui">TESTVERSION – separate Testdaten</div>
 
@@ -496,7 +496,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <div id="dayList" class="day-list" aria-label="Reisetage"></div>
 <label for="dayDate">Datum</label>
 <input id="dayDate" type="date" min="2027-07-17" value="2027-07-18" disabled>
-<div id="dayStay" class="muted" aria-live="polite"></div>
+<div id="dayBookings"></div><div id="dayStay" class="muted" aria-live="polite"></div>
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayPlan">Aktivitäten, Fahrzeiten und Hinweise</label>
@@ -546,7 +546,20 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
   <div class="card">
     <h2>Buchungen</h2>
     <p>Unsere Reservierungen und Buchungstermine.</p>
-    <p class="muted">Hier entsteht unser Buchungskalender für Campgrounds, Fähren und Aktivitäten.</p>
+    <h3>Offene Buchungen</h3><div id="bookingOpen"></div><h3>Bestätigte Buchungen</h3><div id="bookingConfirmed"></div><h3>Unterkünfte</h3><div id="bookingStays"></div>
+<form id="bookingForm"><h3 id="bookingHeading">Buchung hinzufügen</h3>
+<label for="bkName">Bezeichnung</label><input id="bkName" required maxlength="160">
+<label for="bkState">Status</label><select id="bkState"><option>Offen</option><option>Bestätigt</option></select>
+<label for="bkDate">Reisedatum / Aktivität</label><input id="bkDate" type="date">
+<label for="bkTime">Uhrzeit vor Ort</label><input id="bkTime" type="time">
+<label for="bkRelease">Buchungsfreigabe (deutsche Zeit)</label><input id="bkRelease" type="date">
+<label for="bkReleaseTime">Uhrzeit der Freigabe (deutsche Zeit)</label><input id="bkReleaseTime" type="time">
+<label for="bkNumber">Buchungsnummer</label><input id="bkNumber" maxlength="160">
+<label for="bkMeeting">Treffpunkt / Check-in</label><input id="bkMeeting" maxlength="300">
+<label for="bkCancel">Stornierungsfrist (Datum)</label><input id="bkCancel" type="date">
+<label for="bkLink">Buchungslink</label><input id="bkLink" type="url">
+<label for="bkNote">Stellplatzwünsche, Alternativen und Hinweise</label><textarea id="bkNote" maxlength="5000"></textarea>
+<button id="bookingSave" disabled type="submit">Buchung speichern</button> <button type="button" class="link" id="bookingNew">Neuer Eintrag</button></form><p id="bookingStatus" role="status" class="muted"></p>
     <button class="link" data-go="overview">← Zurück zur Übersicht</button>
   </div>
 </section>
@@ -629,6 +642,26 @@ const db = getFirestore(firebaseApp);
 const el = id => document.getElementById(id);
 
 let currentUser = null;
+const bkFields=["Name","State","Date","Time","Release","ReleaseTime","Number","Meeting","Cancel","Link","Note"];
+let bookings=[],bkEdit=null,bkReady=false,bkBusy=false,bkEpoch=0;
+const bkDateFmt=v=>v?v.split("-").reverse().join("."):"";
+function resetBooking(){el("bookingForm").reset();bkEdit=null;el("bookingHeading").textContent="Buchung hinzufügen";}
+function renderBookingStays(){const box=el("bookingStays");box.replaceChildren();for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){const p=document.createElement("p");p.textContent=item.Name+" · "+bkDateFmt(item.In)+" – "+bkDateFmt(item.Out)+" · "+item.State;box.append(p);}if(!stays.length)box.textContent="Keine Unterkünfte eingetragen.";}
+function renderDayBookings(){const box=el("dayBookings");box.replaceChildren();for(const item of bookings.filter(x=>x.State==="Bestätigt"&&x.Date===el("dayDate").value)){const p=document.createElement("p");p.className="day-stay-card";p.textContent="🎟️ "+(item.Time?item.Time+" Uhr · ":"")+item.Name+(item.Meeting?" · "+item.Meeting:"");box.append(p);}}
+function renderBookings(){
+ for(const state of ["Offen","Bestätigt"]){const box=el(state==="Offen"?"bookingOpen":"bookingConfirmed");box.replaceChildren();const entries=bookings.filter(x=>x.State===state).sort((a,b)=>(state==="Offen"?a.Release||"9999":a.Date||"9999").localeCompare(state==="Offen"?b.Release||"9999":b.Date||"9999"));if(!entries.length)box.textContent="Keine Einträge.";
+ for(const item of entries){const div=document.createElement("div");div.className="booking-item";const title=document.createElement("strong");title.textContent=item.Name;div.append(title);
+ for(const line of [item.Release&&state==="Offen"?"Buchungsstart: "+bkDateFmt(item.Release)+" "+item.ReleaseTime+" (DE)":"",item.Date?"Reisetermin: "+bkDateFmt(item.Date)+" "+item.Time:"",item.Number?"Buchungsnummer: "+item.Number:"",item.Meeting,item.Cancel?"Stornierungsfrist: "+bkDateFmt(item.Cancel):"",item.Note])if(line){const p=document.createElement("div");p.textContent=line;div.append(p);}
+ if(/^https?:\/\//i.test(item.Link)){const a=document.createElement("a");a.href=item.Link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Buchungslink";div.append(a);}
+ const edit=document.createElement("button");edit.type="button";edit.textContent="Bearbeiten";edit.disabled=!bkReady||bkBusy;edit.onclick=()=>{bkEdit=item.id;for(const k of bkFields)el("bk"+k).value=item[k]||"";el("bookingHeading").textContent="Buchung bearbeiten";el("bookingHeading").scrollIntoView();};div.append(edit);
+ const del=document.createElement("button");del.type="button";del.className="link";del.textContent="Löschen";del.disabled=!bkReady||bkBusy;del.onclick=()=>{if(confirm("Buchung wirklich löschen?"))persistBookings(bookings.filter(x=>x.id!==item.id));};div.append(del);box.append(div);}
+ }renderDayBookings();
+}
+async function loadBookings(user){const epoch=++bkEpoch;bkReady=false;bookings=[];resetBooking();renderBookings();el("bookingSave").disabled=true;el("bookingStatus").textContent="";if(!user)return;try{const snap=await getDoc(doc(db,"users",user.uid,"travel","test-bookings"));if(epoch!==bkEpoch)return;bookings=Array.isArray(snap.data()?.items)?snap.data().items:[];bkReady=true;renderBookings();el("bookingSave").disabled=bkBusy;}catch(e){if(epoch===bkEpoch)el("bookingStatus").textContent="Laden fehlgeschlagen: "+e.code;}}
+async function persistBookings(next){if(!currentUser||!bkReady||bkBusy)return;const user=currentUser,epoch=bkEpoch;bkBusy=true;el("bookingSave").disabled=true;renderBookings();try{await setDoc(doc(db,"users",user.uid,"travel","test-bookings"),{items:next},{merge:true});if(epoch===bkEpoch){bookings=next;resetBooking();el("bookingStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===bkEpoch)el("bookingStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{bkBusy=false;el("bookingSave").disabled=!bkReady;renderBookings();}}
+el("bookingNew").onclick=()=>{if(!bkBusy)resetBooking();};
+el("bookingForm").addEventListener("submit",e=>{e.preventDefault();if(!bkReady||bkBusy)return;const item={id:bkEdit||crypto.randomUUID()};for(const k of bkFields)item[k]=el("bk"+k).value.trim();if(item.Link&&!/^https?:\/\//i.test(item.Link)){el("bookingStatus").textContent="Bitte HTTPS- oder HTTP-Link eingeben.";return;}persistBookings([...bookings.filter(x=>x.id!==item.id),item]);});
+
 const stayFields=["Name","Type","In","InTime","Out","OutTime","Room","State","Address","Link","Note"];
 let stays=[],stayEdit=null,stayReady=false,stayEpoch=0,stayBusy=false;
 function resetStay(){el("stayForm").reset();stayEdit=null;el("stayHeading").textContent="Unterkunft hinzufügen";}
@@ -641,7 +674,7 @@ function renderDayStay(){
  }
 }
 function renderStays(){
- renderDayStay();
+ renderDayStay();renderBookingStays();
  const list=el("stayList");list.replaceChildren();
  for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){
  const div=document.createElement("div");div.className="stay-item";
@@ -704,6 +737,7 @@ function dayControls(enabled) {
   el("saveDay").disabled = !enabled;
 }
 async function loadDay() {
+  renderDayBookings();
   renderDayList();
   renderDayStay();
   const request = ++dayRequest;
@@ -805,6 +839,7 @@ onAuthStateChanged(auth, async user => {
 
 currentUser = user;
 loadStays(user);
+loadBookings(user);
 dayRequest++;
 dayLoaded = false;
 dayControls(false);
