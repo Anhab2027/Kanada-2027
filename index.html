@@ -466,6 +466,7 @@ button:focus-visible {
 <div id="dayList" class="day-list" aria-label="Reisetage"></div>
 <label for="dayDate">Datum</label>
 <input id="dayDate" type="date" min="2027-07-17" value="2027-07-18" disabled>
+<div id="dayStay" class="muted" aria-live="polite"></div>
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayPlan">Aktivitäten, Fahrzeiten und Hinweise</label>
@@ -601,18 +602,35 @@ let currentUser = null;
 const stayFields=["Name","Type","In","InTime","Out","OutTime","Room","State","Address","Link","Note"];
 let stays=[],stayEdit=null,stayReady=false,stayEpoch=0,stayBusy=false;
 function resetStay(){el("stayForm").reset();stayEdit=null;el("stayHeading").textContent="Unterkunft hinzufügen";}
+function renderDayStay(){
+ const date=el("dayDate").value;
+ const box=el("dayStay");box.replaceChildren();
+ if(!stayReady||!date)return;
+ for(const item of stays.filter(x=>x.In<=date&&date<=x.Out)){
+ const p=document.createElement("p");p.textContent=(item.Out===date?"Abreise: ":item.In===date?"Anreise / Übernachtung: ":"Übernachtung: ")+item.Name;box.append(p);
+ }
+}
 function renderStays(){
+ renderDayStay();
  const list=el("stayList");list.replaceChildren();
  for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){
  const div=document.createElement("div");div.className="stay-item";
  const title=document.createElement("strong");title.textContent=item.Name;div.append(title);
- const p=document.createElement("p");p.textContent=item.In+" – "+item.Out+" · "+item.State;div.append(p);
+ const p=document.createElement("p");const nights=Math.round((Date.parse(item.Out)-Date.parse(item.In))/86400000);
+ p.textContent=item.In+" – "+item.Out+" · "+nights+(nights===1?" Nacht":" Nächte");div.append(p);
+ const status=document.createElement("span");status.textContent=item.State;status.style.color=item.State==="Gebucht"?"#166534":item.State==="Noch zu buchen"?"#B45309":"#254657";status.style.fontWeight="600";div.append(status);
  for(const value of [item.Room,item.Address,item.Note])if(value){const line=document.createElement("div");line.textContent=value;div.append(line);}
  const times=document.createElement("div");times.textContent=[item.InTime&&"Check-in "+item.InTime,item.OutTime&&"Check-out "+item.OutTime].filter(Boolean).join(" · ");div.append(times);
  function link(label,url){const a=document.createElement("a");a.textContent=label;a.href=url;a.target="_blank";a.rel="noopener noreferrer";div.append(a);}
  if(item.Address)link("Navigation","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address));
  if(/^https?:\/\//i.test(item.Link||""))link("Buchungslink",item.Link);
- const b=document.createElement("button");b.type="button";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};div.append(b);list.append(div);
+ const b=document.createElement("button");b.type="button";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};div.append(b);
+ const del=document.createElement("button");del.type="button";del.className="link";del.textContent="Löschen";del.disabled=stayBusy||!stayReady;del.onclick=async()=>{
+ if(!currentUser||stayBusy||!stayReady||!confirm("Unterkunft „"+item.Name+"“ wirklich löschen?"))return;
+ const user=currentUser,epoch=stayEpoch,next=stays.filter(x=>x.id!==item.id);
+ stayBusy=true;el("staySave").disabled=true;renderStays();
+ try{await setDoc(doc(db,"users",user.uid,"travel","accommodations"),{items:next},{merge:true});if(epoch===stayEpoch){stays=next;if(stayEdit===item.id)resetStay();el("stayStatus").textContent="Unterkunft gelöscht.";}}catch(e){if(epoch===stayEpoch)el("stayStatus").textContent="Löschen fehlgeschlagen: "+e.code;}finally{stayBusy=false;el("staySave").disabled=!stayReady;renderStays();}
+ };div.append(del);list.append(div);
  }
 }
 async function loadStays(user){
@@ -654,6 +672,7 @@ function dayControls(enabled) {
 }
 async function loadDay() {
   renderDayList();
+  renderDayStay();
   const request = ++dayRequest;
   const user = currentUser;
   const date = el("dayDate").value;
