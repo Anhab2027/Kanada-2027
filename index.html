@@ -356,7 +356,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 .booking-item strong,.stay-item strong{font-size:16px;font-weight:600}
 .booking-item>div,.stay-item>p,.stay-item>div,#bookingStays p{font-size:14px;line-height:1.5}
 .page:not(#overview) .muted{font-size:14px}
-#bookings>.card{background:transparent;box-shadow:none;padding:0}#bookings>.card>h2,#bookings>.card>p{margin-left:4px;margin-right:4px}.booking-group{border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #2546570c}.booking-group h3{margin:0 0 12px!important;padding-bottom:10px;border-bottom:1px solid #25465722}.booking-open{background:#FFF4E4}.booking-open h3{color:#92400E}.booking-confirmed{background:#EAF3EC}.booking-confirmed h3{color:#166534}.booking-stays{background:#F1F7FA}.booking-item:last-child{border-bottom:0;padding-bottom:0}.booking-group .booking-item:first-child{padding-top:0}#bookingAdd{width:100%;margin:4px 0 12px;min-height:48px}#bookingForm{background:#F1F7FA;border-radius:16px;padding:15px;margin:12px 0}#bookingForm h3{margin-top:0}.booking-group p:last-child{margin-bottom:0}#stayList .stay-item{background:#F1F7FA;border:0;border-left:4px solid #799EAF;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #25465712}#stayList .stay-item[data-status="Gebucht"]{border-left-color:#166534;background:#EAF3EC}#stayList .stay-item[data-status="Noch zu buchen"]{border-left-color:#B45309;background:#FFF4E4}#stayAdd{width:100%;min-height:48px;margin:8px 0}#stayForm{margin-top:16px;padding-top:12px;border-top:1px solid #A9C5D8}#stayForm h2{font-family:Inter,Arial,sans-serif;font-size:17px;font-weight:600}</style>
+#bookings>.card{background:transparent;box-shadow:none;padding:0}#bookings>.card>h2,#bookings>.card>p{margin-left:4px;margin-right:4px}.booking-group{border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #2546570c}.booking-group h3{margin:0 0 12px!important;padding-bottom:10px;border-bottom:1px solid #25465722}.booking-open{background:#FFF4E4}.booking-open h3{color:#92400E}.booking-confirmed{background:#EAF3EC}.booking-confirmed h3{color:#166534}.booking-stays{background:#F1F7FA}.booking-item:last-child{border-bottom:0;padding-bottom:0}.booking-group .booking-item:first-child{padding-top:0}#bookingAdd{width:100%;margin:4px 0 12px;min-height:48px}#bookingForm{background:#F1F7FA;border-radius:16px;padding:15px;margin:12px 0}#bookingForm h3{margin-top:0}.booking-group p:last-child{margin-bottom:0}#stayList .stay-item{background:#F1F7FA;border:0;border-left:4px solid #799EAF;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #25465712}#stayList .stay-item[data-status="Gebucht"]{border-left-color:#166534;background:#EAF3EC}#stayList .stay-item[data-status="Noch zu buchen"]{border-left-color:#B45309;background:#FFF4E4}#stayAdd{width:100%;min-height:48px;margin:8px 0}#stayForm{margin-top:16px;padding-top:12px;border-top:1px solid #A9C5D8}#stayForm h2{font-family:Inter,Arial,sans-serif;font-size:17px;font-weight:600}.booking-countdown{background:#FFFFFF99;border:1px solid #B4530933;border-radius:10px;padding:10px;margin:10px 0 4px;color:#92400E;font-weight:600;font-variant-numeric:tabular-nums}</style>
 </head>
 <body>
 
@@ -655,14 +655,40 @@ const bkDateFmt=v=>v?v.split("-").reverse().join("."):"";
 function resetBooking(){el("bookingForm").hidden=true;el("bookingAdd").hidden=false;el("bookingForm").reset();bkEdit=null;el("bookingHeading").textContent="Buchung hinzufügen";}
 function renderBookingStays(){const box=el("bookingStays");box.replaceChildren();for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){const p=document.createElement("p");p.textContent=item.Name+" · "+bkDateFmt(item.In)+" – "+bkDateFmt(item.Out)+" · "+item.State;box.append(p);}if(!stays.length)box.textContent="Keine Unterkünfte eingetragen.";}
 function renderDayBookings(){const box=el("dayBookings");box.replaceChildren();for(const item of bookings.filter(x=>x.State==="Bestätigt"&&x.Date===el("dayDate").value)){const p=document.createElement("p");p.className="day-stay-card";p.textContent="🎟️ "+(item.Time?item.Time+" Uhr · ":"")+item.Name+(item.Meeting?" · "+item.Meeting:"");box.append(p);}}
+function releaseInstant(date,time){
+ if(!date||!time)return null;
+ const target=Date.parse(date+"T"+time+":00Z");
+ if(!Number.isFinite(target))return null;
+ const fmt=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"});
+ let t=target;
+ for(let i=0;i<3;i++){const p=Object.fromEntries(fmt.formatToParts(new Date(t)).map(x=>[x.type,x.value]));const local=Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);t+=target-local;}
+ return t;
+}
+function updateBookingCountdowns(){
+ for(const node of document.querySelectorAll(".booking-countdown")){
+ const date=node.dataset.date,time=node.dataset.time;
+ if(!date){node.textContent="Buchungsstart noch nicht bekannt";continue;}
+ if(!time){node.textContent="Uhrzeit der Freigabe noch offen";continue;}
+ const instant=releaseInstant(date,time);
+ if(instant===null){node.textContent="Freigabetermin prüfen";continue;}
+ const remaining=instant-Date.now();
+ if(remaining<=0){node.textContent="Buchungsstart erreicht – Verfügbarkeit prüfen";continue;}
+ const minutes=Math.ceil(remaining/60000);
+ const days=Math.floor(minutes/1440),hours=Math.floor(minutes%1440/60),mins=minutes%60;
+ node.textContent="Noch "+days+" T · "+hours+" Std · "+mins+" Min";
+ }
+}
+setInterval(updateBookingCountdowns,15000);
+document.addEventListener("visibilitychange",updateBookingCountdowns);
 function renderBookings(){
  for(const state of ["Offen","Bestätigt"]){const box=el(state==="Offen"?"bookingOpen":"bookingConfirmed");box.replaceChildren();const entries=bookings.filter(x=>x.State===state).sort((a,b)=>(state==="Offen"?a.Release||"9999":a.Date||"9999").localeCompare(state==="Offen"?b.Release||"9999":b.Date||"9999"));if(!entries.length)box.textContent="Keine Einträge.";
  for(const item of entries){const div=document.createElement("div");div.className="booking-item";const title=document.createElement("strong");title.textContent=item.Name;div.append(title);
  for(const line of [item.Release&&state==="Offen"?"Buchungsstart: "+bkDateFmt(item.Release)+" "+item.ReleaseTime+" (DE)":"",item.Date?"Reisetermin: "+bkDateFmt(item.Date)+" "+item.Time:"",item.Number?"Buchungsnummer: "+item.Number:"",item.Meeting,item.Cancel?"Stornierungsfrist: "+bkDateFmt(item.Cancel):"",item.Note])if(line){const p=document.createElement("div");p.textContent=line;div.append(p);}
+ if(state==="Offen"){const countdown=document.createElement("div");countdown.className="booking-countdown";countdown.dataset.date=item.Release||"";countdown.dataset.time=item.ReleaseTime||"";div.append(countdown);}
  if(/^https?:\/\//i.test(item.Link)){const a=document.createElement("a");a.href=item.Link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Buchungslink";div.append(a);}
  const edit=document.createElement("button");edit.type="button";edit.textContent="Bearbeiten";edit.disabled=!bkReady||bkBusy;edit.onclick=()=>{el("bookingForm").hidden=false;el("bookingAdd").hidden=true;bkEdit=item.id;for(const k of bkFields)el("bk"+k).value=item[k]||"";el("bookingHeading").textContent="Buchung bearbeiten";el("bookingHeading").scrollIntoView();};div.append(edit);
  const del=document.createElement("button");del.type="button";del.className="link";del.textContent="Löschen";del.disabled=!bkReady||bkBusy;del.onclick=()=>{if(confirm("Buchung wirklich löschen?"))persistBookings(bookings.filter(x=>x.id!==item.id));};div.append(del);box.append(div);}
- }renderDayBookings();
+ }renderDayBookings();updateBookingCountdowns();
 }
 async function loadBookings(user){const epoch=++bkEpoch;bkReady=false;bookings=[];resetBooking();renderBookings();el("bookingSave").disabled=true;el("bookingStatus").textContent="";if(!user)return;try{const snap=await getDoc(doc(db,"users",user.uid,"travel","bookings"));if(epoch!==bkEpoch)return;bookings=Array.isArray(snap.data()?.items)?snap.data().items:[];bkReady=true;renderBookings();el("bookingSave").disabled=bkBusy;}catch(e){if(epoch===bkEpoch)el("bookingStatus").textContent="Laden fehlgeschlagen: "+e.code;}}
 async function persistBookings(next){if(!currentUser||!bkReady||bkBusy)return;const user=currentUser,epoch=bkEpoch;bkBusy=true;el("bookingSave").disabled=true;renderBookings();try{await setDoc(doc(db,"users",user.uid,"travel","bookings"),{items:next},{merge:true});if(epoch===bkEpoch){bookings=next;resetBooking();el("bookingStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===bkEpoch)el("bookingStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{bkBusy=false;el("bookingSave").disabled=!bkReady;renderBookings();}}
