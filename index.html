@@ -390,7 +390,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 #bookingOpen>.booking-item:nth-child(even),#bookingConfirmed>.booking-item:nth-child(even){background:#E2EDF4}
 #bookingOpen>.booking-item:last-child,#bookingConfirmed>.booking-item:last-child{margin-bottom:0}
 .booking-item .item-edit{background:#D5E5EF}
-#hlList .hl-region{margin:20px 0}#hlList .hl-region-title{background:#254657;color:white;border-radius:10px;padding:12px;margin:0 0 8px;font-size:17px}#hlAdd{width:100%;margin-top:16px;min-height:48px}#hlForm{margin-top:16px}#hlForm select{width:100%}#hlNote{min-height:90px}.hl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.hl-item:nth-child(even){background:#E2EDF4}.hl-item h3{margin:0 0 8px!important}.hl-item p{margin:6px 0;font-size:14px}.hl-item a{display:block;color:#254657;min-height:44px;padding:10px 0;font-weight:600}#hlStatus:empty{display:none}#clAdd{width:100%;margin-top:16px;min-height:48px}#clForm{margin-top:16px}#clNote{min-height:90px}#clBar{width:100%;height:12px;accent-color:#254657;margin-bottom:16px}#clStatus:empty{display:none}.cl-group{margin:16px 0}.cl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.cl-item:nth-of-type(even){background:#E2EDF4}.cl-task{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600}.cl-task input[type=checkbox]{width:24px!important;height:24px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#254657}.cl-done{text-decoration:line-through;color:#526D7D}.cl-item p{font-size:14px;margin:6px 0} .wx-card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.wx-card:nth-child(even){background:#E2EDF4}.wx-card h3{margin:0 0 8px!important}.wx-card p{margin:5px 0}.wx-trip{border:2px solid #254657}#wxStatus{font-size:14px}#wxPlace{margin-bottom:12px}</style>
+#hlList .hl-region{margin:20px 0}#hlList .hl-region-title{background:#254657;color:white;border-radius:10px;padding:12px;margin:0 0 8px;font-size:17px}#hlAdd{width:100%;margin-top:16px;min-height:48px}#hlForm{margin-top:16px}#hlForm select{width:100%}#hlNote{min-height:90px}.hl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.hl-item:nth-child(even){background:#E2EDF4}.hl-item h3{margin:0 0 8px!important}.hl-item p{margin:6px 0;font-size:14px}.hl-item a{display:block;color:#254657;min-height:44px;padding:10px 0;font-weight:600}#hlStatus:empty{display:none}#clAdd{width:100%;margin-top:16px;min-height:48px}#clForm{margin-top:16px}#clNote{min-height:90px}#clBar{width:100%;height:12px;accent-color:#254657;margin-bottom:16px}#clStatus:empty{display:none}.cl-group{margin:16px 0}.cl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.cl-item:nth-of-type(even){background:#E2EDF4}.cl-task{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600}.cl-task input[type=checkbox]{width:24px!important;height:24px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#254657}.cl-done{text-decoration:line-through;color:#526D7D}.cl-item p{font-size:14px;margin:6px 0} .wx-card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.wx-card:nth-child(even){background:#E2EDF4}.wx-card h3{margin:0 0 8px!important}.wx-card p{margin:5px 0}.wx-trip{border:2px solid #254657}#wxStatus{font-size:14px}#wxPlace{margin-bottom:12px}.day-links:empty{display:none}.day-links{margin:0 0 12px}.day-links a{display:block;color:#254657;text-decoration:underline;overflow-wrap:anywhere;padding:10px 0;min-height:44px;box-sizing:border-box;font-size:14px}</style>
 </head>
 <body>
 
@@ -541,17 +541,17 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayMorning">Morgens</label>
-<textarea id="dayMorning" maxlength="10000" disabled></textarea>
+<textarea id="dayMorning" maxlength="10000" disabled></textarea><div class="day-links" id="dayMorningLinks"></div>
 <label for="dayNoon">Mittags</label>
-<textarea id="dayNoon" maxlength="10000" disabled></textarea>
+<textarea id="dayNoon" maxlength="10000" disabled></textarea><div class="day-links" id="dayNoonLinks"></div>
 <label for="dayAfternoon">Nachmittags</label>
-<textarea id="dayAfternoon" maxlength="10000" disabled></textarea>
+<textarea id="dayAfternoon" maxlength="10000" disabled></textarea><div class="day-links" id="dayAfternoonLinks"></div>
 <label for="dayEvening">Abends</label>
-<textarea id="dayEvening" maxlength="10000" disabled></textarea>
+<textarea id="dayEvening" maxlength="10000" disabled></textarea><div class="day-links" id="dayEveningLinks"></div>
 <label for="dayOptions">Alternativen und besondere Hinweise</label>
-<textarea id="dayOptions" maxlength="10000" disabled></textarea>
+<textarea id="dayOptions" maxlength="10000" disabled></textarea><div class="day-links" id="dayOptionsLinks"></div>
 <label for="dayPlan">Weitere Tagesnotizen (bisherige Planung)</label>
-<textarea id="dayPlan" maxlength="10000" disabled></textarea>
+<textarea id="dayPlan" maxlength="10000" disabled></textarea><div class="day-links" id="dayPlanLinks"></div>
 <button id="saveDay" disabled>Reisetag speichern</button>
 <p id="dayStatus" class="muted" role="status"></p>
 </div>
@@ -628,7 +628,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Entwicklung – Tagesplanung</footer>
+<footer>Kanada 2027 · Version 1.4.4</footer>
 
 </main>
 
@@ -827,6 +827,9 @@ function dayControls(enabled) {
   el("dayOptions").disabled = !enabled;
   el("saveDay").disabled = !enabled;
 }
+const dayLinkFields=["Morning","Noon","Afternoon","Evening","Options","Plan"];
+function renderDayLinks(){for(const k of dayLinkFields){const box=el("day"+k+"Links");box.replaceChildren();const urls=el("day"+k).value.match(/https?:\/\/[^\s<>"']+/gi)||[];for(const raw of new Set(urls)){const url=raw.replace(/[.,;!?]+$/,"");try{const parsed=new URL(url);if(!["http:","https:"].includes(parsed.protocol))continue;const a=document.createElement("a");a.href=parsed.href;a.textContent=url;a.target="_blank";a.rel="noopener noreferrer";box.append(a);}catch{}}}}
+for(const k of dayLinkFields)el("day"+k).addEventListener("input",renderDayLinks);
 async function loadDay() {
  renderDayHighlights();
  renderDayRoute();
@@ -845,6 +848,7 @@ el("dayNoon").value = "";
 el("dayAfternoon").value = "";
 el("dayEvening").value = "";
 el("dayOptions").value = "";
+renderDayLinks();
   if (!user || !date) return;
   el("dayStatus").textContent = "Reisetag wird geladen …";
   try {
@@ -858,6 +862,7 @@ el("dayOptions").value = "";
     el("dayAfternoon").value = data.afternoon || "";
     el("dayEvening").value = data.evening || "";
     el("dayOptions").value = data.options || "";
+    renderDayLinks();
     dayLoaded = true;
     dayControls(true);
     el("dayStatus").textContent = snap.exists() ? "Reisetag geladen." : "Noch keine Planung vorhanden.";
@@ -965,6 +970,7 @@ el("dayNoon").value = "";
 el("dayAfternoon").value = "";
 el("dayEvening").value = "";
 el("dayOptions").value = "";
+renderDayLinks();
 el("dayStatus").textContent = "";
 if(user) loadDay(); else renderDayList();
 el("loginCard").hidden = !!user;
