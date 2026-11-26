@@ -596,7 +596,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="bkState">Status</label><select id="bkState"><option>Offen</option><option>Bestätigt</option></select>
 <label for="bkDate">Reisedatum / Aktivität</label><input id="bkDate" type="date">
 <label for="bkTime">Uhrzeit vor Ort</label><input id="bkTime" type="time">
-<label for="bkRelease">Buchungsfreigabe (deutsche Zeit)</label><input id="bkRelease" type="date">
+<label for="bkReleaseKind">Art des Termins</label><select id="bkReleaseKind"><option value="">Buchungsstart (nicht näher gekennzeichnet)</option><option value="Bestätigt">Bestätigter Buchungsstart</option><option value="Voraussichtlich">Voraussichtlicher Buchungsstart</option><option value="Prüfdatum">Prüfdatum (keine bestätigte Freigabe)</option></select><label for="bkRelease">Buchungsfreigabe / Prüfdatum (deutsche Zeit)</label><input id="bkRelease" type="date">
 <label for="bkReleaseTime">Uhrzeit der Freigabe (deutsche Zeit)</label><input id="bkReleaseTime" type="time">
 <label for="bkNumber">Buchungsnummer</label><input id="bkNumber" maxlength="160">
 <label for="bkMeeting">Treffpunkt / Check-in</label><input id="bkMeeting" maxlength="300">
@@ -688,7 +688,7 @@ async function loadRoutes(user){const epoch=++rtEpoch;routes=[];rtReady=false;re
 async function saveRoutes(next){if(!currentUser||!rtReady||rtBusy)return;const epoch=rtEpoch,user=currentUser;rtBusy=true;el("routeSave").disabled=true;renderRoutes();try{await setDoc(doc(db,"users",user.uid,"travel","routes"),{items:next},{merge:true});if(epoch===rtEpoch){routes=next;resetRoute();el("routeStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===rtEpoch)el("routeStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{rtBusy=false;el("routeSave").disabled=false;renderRoutes();}}
 el("routeAdd").onclick=()=>{resetRoute();el("routeHeading").textContent="Etappe hinzufügen";el("routeForm").hidden=false;el("routeAdd").hidden=true;};el("routeCancel").onclick=()=>{if(!rtBusy)resetRoute();};el("routeForm").onsubmit=e=>{e.preventDefault();const x={id:rtEdit||crypto.randomUUID()};for(const k of rtFields)x[k]=el("rt"+k).value.trim();if(!x.From||!x.To||!x.Date)return;saveRoutes([...routes.filter(y=>y.id!==x.id),x]);};
 
-const bkFields=["Name","State","Date","Time","Release","ReleaseTime","Number","Meeting","Cancel","Link","Note"];
+const bkFields=["Name","State","Date","Time","Release","ReleaseTime","ReleaseKind","Number","Meeting","Cancel","Link","Note"];
 let bookings=[],bkEdit=null,bkReady=false,bkBusy=false,bkEpoch=0;
 const bkDateFmt=v=>v?v.split("-").reverse().join("."):"";
 function resetBooking(){el("bookingForm").hidden=true;el("bookingAdd").hidden=false;el("bookingForm").reset();bkEdit=null;el("bookingHeading").textContent="Buchung hinzufügen";}
@@ -707,7 +707,7 @@ function updateBookingCountdowns(){
  for(const node of document.querySelectorAll(".booking-countdown")){
  const date=node.dataset.date,time=node.dataset.time;
  if(!date){node.textContent="Buchungsstart noch nicht bekannt";continue;}
- if(!time){node.textContent="Uhrzeit der Freigabe noch offen";continue;}
+ if(!time||node.dataset.kind==="Prüfdatum"){const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());const part=k=>today.find(p=>p.type===k).value;const current=Date.UTC(+part("year"),+part("month")-1,+part("day"));const target=Date.parse(date+"T00:00:00Z");const days=Math.round((target-current)/86400000);const check=node.dataset.kind==="Prüfdatum";node.textContent=!Number.isFinite(days)?"Datum prüfen":days>0?"Noch "+days+" Tage · "+(check?"bis zum Prüfdatum":"Uhrzeit noch offen"):days===0?(check?"Heute Verfügbarkeit prüfen":"Heute: Buchungsstart vorgesehen · Uhrzeit offen"):(check?"Prüfdatum erreicht – Verfügbarkeit prüfen":"Buchungsdatum erreicht – Verfügbarkeit prüfen");continue;}
  const instant=releaseInstant(date,time);
  if(instant===null){node.textContent="Freigabetermin prüfen";continue;}
  const remaining=instant-Date.now();
@@ -722,8 +722,8 @@ document.addEventListener("visibilitychange",updateBookingCountdowns);
 function renderBookings(){
  for(const state of ["Offen","Bestätigt"]){const box=el(state==="Offen"?"bookingOpen":"bookingConfirmed");box.replaceChildren();const entries=bookings.filter(x=>x.State===state).sort((a,b)=>(state==="Offen"?a.Release||"9999":a.Date||"9999").localeCompare(state==="Offen"?b.Release||"9999":b.Date||"9999"));if(!entries.length)box.textContent="Keine Einträge.";
  for(const item of entries){const div=document.createElement("div");div.className="booking-item";const title=document.createElement("strong");title.textContent=item.Name;div.append(title);
- for(const line of [item.Release&&state==="Offen"?"Buchungsstart: "+bkDateFmt(item.Release)+" "+item.ReleaseTime+" (DE)":"",item.Date?"Reisetermin: "+bkDateFmt(item.Date)+" "+item.Time:"",item.Number?"Buchungsnummer: "+item.Number:"",item.Meeting,item.Cancel?"Stornierungsfrist: "+bkDateFmt(item.Cancel):"",item.Note])if(line){const p=document.createElement("div");p.textContent=line;div.append(p);}
- if(state==="Offen"){const countdown=document.createElement("div");countdown.className="booking-countdown";countdown.dataset.date=item.Release||"";countdown.dataset.time=item.ReleaseTime||"";div.append(countdown);}
+ for(const line of [item.Release&&state==="Offen"?(item.ReleaseKind==="Prüfdatum"?"Prüfdatum: ":item.ReleaseKind==="Voraussichtlich"?"Voraussichtlicher Buchungsstart: ":"Buchungsstart: ")+bkDateFmt(item.Release)+(item.ReleaseTime&&item.ReleaseKind!=="Prüfdatum"?" "+item.ReleaseTime+" (DE)":""):"",item.Date?"Reisetermin: "+bkDateFmt(item.Date)+" "+item.Time:"",item.Number?"Buchungsnummer: "+item.Number:"",item.Meeting,item.Cancel?"Stornierungsfrist: "+bkDateFmt(item.Cancel):"",item.Note])if(line){const p=document.createElement("div");p.textContent=line;div.append(p);}
+ if(state==="Offen"){const countdown=document.createElement("div");countdown.className="booking-countdown";countdown.dataset.date=item.Release||"";countdown.dataset.time=item.ReleaseTime||"";countdown.dataset.kind=item.ReleaseKind||"";div.append(countdown);}
  if(/^https?:\/\//i.test(item.Link)){const a=document.createElement("a");a.href=item.Link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Buchungslink";div.append(a);}
  const edit=document.createElement("button");edit.type="button";edit.className="item-edit";edit.textContent="Bearbeiten";edit.disabled=!bkReady||bkBusy;edit.onclick=()=>{el("bookingForm").hidden=false;el("bookingAdd").hidden=true;bkEdit=item.id;for(const k of bkFields)el("bk"+k).value=item[k]||"";el("bookingHeading").textContent="Buchung bearbeiten";el("bookingHeading").scrollIntoView();};const actions=document.createElement("div");actions.className="item-actions";actions.append(edit);div.append(actions);
  const del=document.createElement("button");del.type="button";del.className="item-delete";del.textContent="Löschen";del.disabled=!bkReady||bkBusy;del.onclick=()=>{if(confirm("Buchung „"+item.Name+"“ wirklich löschen?"))persistBookings(bookings.filter(x=>x.id!==item.id));};actions.append(del);box.append(div);}
