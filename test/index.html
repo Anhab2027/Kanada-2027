@@ -390,7 +390,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 #bookingOpen>.booking-item:nth-child(even),#bookingConfirmed>.booking-item:nth-child(even){background:#E2EDF4}
 #bookingOpen>.booking-item:last-child,#bookingConfirmed>.booking-item:last-child{margin-bottom:0}
 .booking-item .item-edit{background:#D5E5EF}
-#hlList .hl-region{margin:20px 0}#hlList .hl-region-title{background:#254657;color:white;border-radius:10px;padding:12px;margin:0 0 8px;font-size:17px}#hlAdd{width:100%;margin-top:16px;min-height:48px}#hlForm{margin-top:16px}#hlForm select{width:100%}#hlNote{min-height:90px}.hl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.hl-item:nth-child(even){background:#E2EDF4}.hl-item h3{margin:0 0 8px!important}.hl-item p{margin:6px 0;font-size:14px}.hl-item a{display:block;color:#254657;min-height:44px;padding:10px 0;font-weight:600}#hlStatus:empty{display:none}#clAdd{width:100%;margin-top:16px;min-height:48px}#clForm{margin-top:16px}#clNote{min-height:90px}#clBar{width:100%;height:12px;accent-color:#254657;margin-bottom:16px}#clStatus:empty{display:none}.cl-group{margin:16px 0}.cl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.cl-item:nth-of-type(even){background:#E2EDF4}.cl-task{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600}.cl-task input[type=checkbox]{width:24px!important;height:24px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#254657}.cl-done{text-decoration:line-through;color:#526D7D}.cl-item p{font-size:14px;margin:6px 0} .wx-card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.wx-card:nth-child(even){background:#E2EDF4}.wx-card h3{margin:0 0 8px!important}.wx-card p{margin:5px 0}.wx-trip{border:2px solid #254657}#wxStatus{font-size:14px}#wxPlace{margin-bottom:12px}.day-links:empty{display:none}.day-links{margin:0 0 12px}.day-links a{display:block;color:#254657;text-decoration:underline;overflow-wrap:anywhere;padding:10px 0;min-height:44px;box-sizing:border-box;font-size:14px}.cl-category-toggle{width:100%;text-align:left;background:#254657;color:white;border-radius:10px;padding:12px;min-height:44px;font-size:16px;margin:0 0 4px}.cl-category-toggle[aria-expanded="false"]{margin-bottom:0}#clHideDone{accent-color:#254657}</style>
+#hlList .hl-region{margin:20px 0}#hlList .hl-region-title{background:#254657;color:white;border-radius:10px;padding:12px;margin:0 0 8px;font-size:17px}#hlAdd{width:100%;margin-top:16px;min-height:48px}#hlForm{margin-top:16px}#hlForm select{width:100%}#hlNote{min-height:90px}.hl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.hl-item:nth-child(even){background:#E2EDF4}.hl-item h3{margin:0 0 8px!important}.hl-item p{margin:6px 0;font-size:14px}.hl-item a{display:block;color:#254657;min-height:44px;padding:10px 0;font-weight:600}#hlStatus:empty{display:none}#clAdd{width:100%;margin-top:16px;min-height:48px}#clForm{margin-top:16px}#clNote{min-height:90px}#clBar{width:100%;height:12px;accent-color:#254657;margin-bottom:16px}#clStatus:empty{display:none}.cl-group{margin:16px 0}.cl-item{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.cl-item:nth-of-type(even){background:#E2EDF4}.cl-task{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600}.cl-task input[type=checkbox]{width:24px!important;height:24px;min-height:0;margin:0;padding:0;flex-shrink:0;accent-color:#254657}.cl-done{text-decoration:line-through;color:#526D7D}.cl-item p{font-size:14px;margin:6px 0} .wx-card{background:#fff;border-radius:12px;padding:14px;margin:12px 0}.wx-card:nth-child(even){background:#E2EDF4}.wx-card h3{margin:0 0 8px!important}.wx-card p{margin:5px 0}.wx-trip{border:2px solid #254657}#wxStatus{font-size:14px}#wxPlace{margin-bottom:12px}.day-links:empty{display:none}.day-links{margin:0 0 12px}.day-links a{display:block;color:#254657;text-decoration:underline;overflow-wrap:anywhere;padding:10px 0;min-height:44px;box-sizing:border-box;font-size:14px}.cl-category-toggle{width:100%;text-align:left;background:#254657;color:white;border-radius:10px;padding:12px;min-height:44px;font-size:16px;margin:0 0 4px}.cl-category-toggle[aria-expanded="false"]{margin-bottom:0}#clHideDone{accent-color:#254657}#topicAdd{width:100%;margin:12px 0;min-height:48px}#topicForm{margin:12px 0}#topicList .hl-item{overflow-wrap:anywhere}#topicText{min-height:150px}</style>
 </head>
 <body><div style="background:#854d0e;color:white;text-align:center;padding:10px;font:600 14px system-ui">TESTVERSION – separate Testdaten</div>
 
@@ -618,8 +618,8 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <section id="more" class="page" hidden>
 <div class="card">
 <h2>📝 Reisenotizen</h2>
-<textarea id="noteText" placeholder="Unsere Reisenotizen …" disabled></textarea>
-<button id="saveNotes" disabled>Notizen speichern</button>
+<div id="topicList"></div><button id="topicAdd" type="button" disabled>＋ Notiz hinzufügen</button><form id="topicForm" hidden><label for="topicTitle">Überschrift</label><input id="topicTitle" required maxlength="160"><label for="topicText">Notiz</label><textarea id="topicText" maxlength="30000"></textarea><div class="form-actions"><button type="submit">Speichern</button><button id="topicCancel" type="button" class="link">Abbrechen</button></div></form><p id="topicStatus" role="status"></p><h3>Bisherige Reisenotizen</h3><textarea id="noteText" placeholder="Unsere Reisenotizen …" disabled></textarea>
+<div id="legacyNoteLinks" class="day-links"></div><button id="saveNotes" disabled>Notizen speichern</button>
 <p id="noteStatus" class="muted" role="status"></p>
 </div>
 <button class="link" data-go="overview">← Zurück zur Übersicht</button>
@@ -628,7 +628,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.4.5 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.4.6 · Testversion</footer>
 
 </main>
 
@@ -665,6 +665,16 @@ const db = getFirestore(firebaseApp);
 const el = id => document.getElementById(id);
 
 let currentUser = null;
+let topics=[],topicEdit=null,topicReady=false,topicBusy=false,topicEpoch=0;
+function noteLinks(box,value){for(const raw of new Set(value.match(/https?:\/\/[^\s<>"']+/gi)||[])){try{const url=new URL(raw.replace(/[.,;!?]+$/,""));if(!["http:","https:"].includes(url.protocol))continue;const a=document.createElement("a");a.href=url.href;a.textContent=url.href;a.target="_blank";a.rel="noopener noreferrer";box.append(a);}catch{}}}
+function legacyLinks(){const box=el("legacyNoteLinks");box.replaceChildren();noteLinks(box,el("noteText").value);}
+el("noteText").addEventListener("input",legacyLinks);
+function resetTopic(){topicEdit=null;el("topicForm").reset();el("topicForm").hidden=true;el("topicAdd").hidden=false;}
+function renderTopics(){const box=el("topicList");box.replaceChildren();el("topicAdd").disabled=!topicReady||topicBusy;for(const x of topics){const card=document.createElement("div");card.className="hl-item";const h=document.createElement("h3");h.textContent=x.title;const p=document.createElement("p");p.style.whiteSpace="pre-wrap";p.textContent=x.text;card.append(h,p);noteLinks(card,x.text);const actions=document.createElement("div");actions.className="item-actions";for(const [label,action] of [["Bearbeiten",()=>{topicEdit=x.id;el("topicTitle").value=x.title;el("topicText").value=x.text;el("topicForm").hidden=false;el("topicAdd").hidden=true;el("topicForm").scrollIntoView({block:"start"});}],["Löschen",()=>{if(confirm("Notiz „"+x.title+"“ wirklich löschen?"))persistTopics(topics.filter(y=>y.id!==x.id));}]]){const b=document.createElement("button");b.type="button";b.className=label==="Bearbeiten"?"item-edit":"item-delete";b.textContent=label;b.disabled=topicBusy||!topicReady;b.onclick=action;actions.append(b);}card.append(actions);box.append(card);}}
+async function persistTopics(next){if(!currentUser||!topicReady||topicBusy)return;const user=currentUser,epoch=topicEpoch;topicBusy=true;renderTopics();for(const e of el("topicForm").elements)e.disabled=true;el("topicStatus").textContent="Speichern läuft …";try{await setDoc(doc(db,"users",user.uid,"travel","test-notes"),{topics:next},{merge:true});if(epoch!==topicEpoch)return;topics=next;resetTopic();el("topicStatus").textContent="✓ In der Cloud gespeichert";}catch(e){if(epoch===topicEpoch)el("topicStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{if(epoch===topicEpoch){topicBusy=false;for(const e of el("topicForm").elements)e.disabled=false;renderTopics();}}}
+el("topicAdd").onclick=()=>{resetTopic();el("topicForm").hidden=false;el("topicAdd").hidden=true;};
+el("topicCancel").onclick=resetTopic;
+el("topicForm").onsubmit=e=>{e.preventDefault();const title=el("topicTitle").value.trim();if(!title)return;const item={id:topicEdit||crypto.randomUUID(),title,text:el("topicText").value};persistTopics(topicEdit?topics.map(x=>x.id===topicEdit?item:x):[...topics,item]);};
 let checks=[],clEdit=null,clReady=false,clBusy=false,clEpoch=0;
 function resetChecks(){clEdit=null;el("clForm").reset();el("clForm").hidden=true;el("clAdd").hidden=false;}
 const clCollapsed=new Set();
@@ -978,6 +988,7 @@ if(user) loadDay(); else renderDayList();
 el("loginCard").hidden = !!user;
 el("app").hidden = !user;
 el("noteText").value = "";
+topicEpoch++;topics=[];topicReady=false;topicBusy=false;resetTopic();for(const e of el("topicForm").elements)e.disabled=false;el("topicStatus").textContent="";renderTopics();legacyLinks();
 el("noteText").disabled = true;
 el("saveNotes").disabled = true;
 el("noteStatus").textContent = "";
@@ -999,6 +1010,7 @@ el("noteText").value = snapshot.exists()
 ? snapshot.data().text || ""
 : "";
 
+topics=Array.isArray(snapshot.data()?.topics)?snapshot.data().topics:[];topicReady=true;renderTopics();legacyLinks();
 el("noteText").disabled = false;
 el("saveNotes").disabled = false;
 el("connectionStatus").textContent = "✓ Anmeldung und Datenbank verbunden";
