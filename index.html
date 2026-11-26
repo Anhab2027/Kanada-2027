@@ -575,7 +575,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
   <div class="card">
     <h2>Buchungen</h2>
     <p>Unsere Reservierungen und Buchungstermine.</p>
-    <div class="booking-group booking-open"><h3>◷ Offene Buchungen</h3><div id="bookingOpen"></div></div><div class="booking-group booking-confirmed"><h3>✓ Bestätigte Buchungen</h3><div id="bookingConfirmed"></div></div><div class="booking-group booking-stays"><h3>🛏 Unterkünfte</h3><div id="bookingStays"></div></div><button type="button" id="bookingAdd">＋ Buchung hinzufügen</button>
+    <div class="booking-group booking-open"><h3>◷ Offene Buchungen</h3><div id="bookingOpen"></div></div><div class="booking-group booking-confirmed"><h3>✓ Bestätigte Buchungen</h3><div id="bookingConfirmed"></div></div><button type="button" id="bookingAdd">＋ Buchung hinzufügen</button>
 <button type="button" class="link" id="importPreview">Reiseplanung übernehmen</button><div id="importPanel" hidden class="booking-group booking-stays"><h3>Importvorschau</h3><div id="importRows"></div><div class="form-actions"><button type="button" id="importApply">Ausgewählte Einträge übernehmen</button> <button type="button" class="link" id="importClose">Abbrechen</button></div></div><form id="bookingForm" hidden><h3 id="bookingHeading">Buchung hinzufügen</h3>
 <label for="bkName">Bezeichnung</label><input id="bkName" required maxlength="160">
 <label for="bkState">Status</label><select id="bkState"><option>Offen</option><option>Bestätigt</option></select>
@@ -683,7 +683,7 @@ const bkFields=["Name","State","Date","Time","Release","ReleaseTime","Number","M
 let bookings=[],bkEdit=null,bkReady=false,bkBusy=false,bkEpoch=0;
 const bkDateFmt=v=>v?v.split("-").reverse().join("."):"";
 function resetBooking(){el("bookingForm").hidden=true;el("bookingAdd").hidden=false;el("bookingForm").reset();bkEdit=null;el("bookingHeading").textContent="Buchung hinzufügen";}
-function renderBookingStays(){const box=el("bookingStays");box.replaceChildren();for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){const p=document.createElement("p");p.textContent=item.Name+" · "+bkDateFmt(item.In)+" – "+bkDateFmt(item.Out)+" · "+item.State;box.append(p);}if(!stays.length)box.textContent="Keine Unterkünfte eingetragen.";}
+function renderBookingStays(){const box=el("bookingStays");if(!box)return;box.replaceChildren();for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){const p=document.createElement("p");p.textContent=item.Name+" · "+bkDateFmt(item.In)+" – "+bkDateFmt(item.Out)+" · "+item.State;box.append(p);}if(!stays.length)box.textContent="Keine Unterkünfte eingetragen.";}
 function renderDayBookings(){const box=el("dayBookings");box.replaceChildren();for(const item of bookings.filter(x=>x.State==="Bestätigt"&&x.Date===el("dayDate").value)){const p=document.createElement("p");p.className="day-stay-card";p.textContent="🎟️ "+(item.Time?item.Time+" Uhr · ":"")+item.Name+(item.Meeting?" · "+item.Meeting:"");box.append(p);}}
 function releaseInstant(date,time){
  if(!date||!time)return null;
