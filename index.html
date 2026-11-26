@@ -264,6 +264,61 @@ button:focus-visible {
   height: 45px;
   display: block;
 }
+/* Pacific Panorama – Funktionskacheln */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.dashboard-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: #F1F7FA;
+  color: #254657;
+  border-radius: 16px;
+  padding: 22px 10px;
+  min-height: 145px;
+  box-shadow: 0 4px 14px rgba(37,70,87,0.12);
+  text-align: center;
+}
+
+.dashboard-tile svg {
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: #C8102E;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-tile strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dashboard-tile small {
+  font-size: 11px;
+  color: #526D7D;
+  line-height: 1.4;
+}
+
+.dashboard-tile:active {
+  transform: scale(0.97);
+  background: #E4EEF4;
+}
+
+@media (min-width: 760px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 </style>
 </head>
 <body>
@@ -339,36 +394,57 @@ button:focus-visible {
   <div style="width:45px;height:2px;background:#C8102E;margin:16px auto 0;"></div>
 </div>
 
-<h2>Unsere Reise</h2>
+<div class="dashboard-grid">
 
-<div class="regions">
+  <button class="dashboard-tile" data-go="days">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h2M14 14h2M8 18h2"/></svg>
+    <strong>Tagesplanung</strong>
+    <small>Unser Reiseverlauf</small>
+  </button>
 
-<div class="region">
-<img src="https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="Stadtlandschaft" loading="lazy" onerror="this.hidden=true">
-<div>
-<strong>Vancouver</strong>
-<small>Stadt &amp; Entdecken</small>
-</div>
-</div>
+  <button class="dashboard-tile" data-go="accommodation">
+    <svg viewBox="0 0 24 24"><path d="M3 21L12 3l9 18H3zM12 12l5 9M12 12l-5 9"/></svg>
+    <strong>Unterkünfte</strong>
+    <small>Hotels &amp; Campgrounds</small>
+  </button>
 
-<div class="region">
-<img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="Grüner Wald" loading="lazy" onerror="this.hidden=true">
-<div>
-<strong>Vancouver Island</strong>
-<small>Wildnis &amp; Meer</small>
-</div>
-</div>
+  <button class="dashboard-tile" data-go="bookings">
+    <svg viewBox="0 0 24 24"><path d="M3 5h18v5a2 2 0 0 0 0 4v5H3v-5a2 2 0 0 0 0-4zM15 5v3M15 11v2M15 16v3"/></svg>
+    <strong>Buchungen</strong>
+    <small>Reservierungen &amp; Termine</small>
+  </button>
 
-<div class="region">
-<img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&amp;fit=crop&amp;w=1000&amp;q=80" alt="Berglandschaft" loading="lazy" onerror="this.hidden=true">
-<div>
-<strong>British Columbia</strong>
-<small>Berge &amp; Abenteuer</small>
-</div>
-</div>
+  <button class="dashboard-tile" data-go="budget">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 8V5l14-3v3M21 11h-6v5h6M17 13.5h1"/></svg>
+    <strong>Reisebudget</strong>
+    <small>Kosten im Überblick</small>
+  </button>
+
+  <button class="dashboard-tile" data-go="highlights">
+    <svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <strong>Highlights</strong>
+    <small>Unsere Entdeckungen</small>
+  </button>
+
+  <button class="dashboard-tile" data-go="checklists">
+    <svg viewBox="0 0 24 24"><path d="M3 6l2 2 4-4M3 13l2 2 4-4M3 20l2 2 4-4M12 6h9M12 13h9M12 20h9"/></svg>
+    <strong>Checklisten</strong>
+    <small>Alles vorbereitet</small>
+  </button>
+
+  <button class="dashboard-tile" data-go="weather">
+    <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><path d="M8 1v2M1 8h2M3 3l2 2M13 3l-2 2M15 8h2M7 20a4 4 0 1 1 0-8 6 6 0 0 1 11 2 3 3 0 0 1 0 6z"/></svg>
+    <strong>Wetter</strong>
+    <small>Sonne, Wind &amp; Meer</small>
+  </button>
+
+  <button class="dashboard-tile" data-go="more">
+    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="16" height="18" rx="2"/><path d="M3 7h4M3 12h4M3 17h4M10 8h7M10 12h7M10 16h5"/></svg>
+    <strong>Notizen</strong>
+    <small>Platz für unsere Ideen</small>
+  </button>
 
 </div>
-
 <button class="link" data-go="route">Route ansehen →</button>
 
 <div class="card">
@@ -422,6 +498,51 @@ button:focus-visible {
 <p>Noch offen: – €</p>
 </div>
 </section>
+<section id="accommodation" class="page" hidden>
+  <div class="card">
+    <h2>Unterkünfte</h2>
+    <p>Unsere Hotels und Campgrounds.</p>
+    <p class="muted">Hier ergänzen wir alle Unterkünfte mit Check-in, Check-out und Buchungsstatus.</p>
+    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
+  </div>
+</section>
+
+<section id="bookings" class="page" hidden>
+  <div class="card">
+    <h2>Buchungen</h2>
+    <p>Unsere Reservierungen und Buchungstermine.</p>
+    <p class="muted">Hier entsteht unser Buchungskalender für Campgrounds, Fähren und Aktivitäten.</p>
+    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
+  </div>
+</section>
+
+<section id="highlights" class="page" hidden>
+  <div class="card">
+    <h2>Highlights</h2>
+    <p>Unsere schönsten Reiseziele und Erlebnisse.</p>
+    <p class="muted">Nationalparks, Strände, Städte, Wanderungen und Ausflüge.</p>
+    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
+  </div>
+</section>
+
+<section id="checklists" class="page" hidden>
+  <div class="card">
+    <h2>Checklisten</h2>
+    <p>Alles für unser Familienabenteuer.</p>
+    <p class="muted">Reisevorbereitungen, Packliste, Wohnmobil und Einkäufe.</p>
+    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
+  </div>
+</section>
+
+<section id="weather" class="page" hidden>
+  <div class="card">
+    <h2>Wetter</h2>
+    <p>Sonne, Wind und Meer.</p>
+    <p class="muted">Hier ergänzen wir später die Wettervorhersagen für unsere Reiseziele.</p>
+    <button class="link" data-go="overview">← Zurück zur Übersicht</button>
+  </div>
+</section>
+
 
 <section id="more" class="page" hidden>
 <div class="card">
