@@ -565,7 +565,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
   <div class="card">
     <h2>Unterkünfte</h2>
     <p>Unsere Hotels und Campgrounds.</p>
-    <div id="stayList"></div>
+    <div id="stayList"></div><button type="button" class="link" id="stayImportOpen">Unterkünfte aus Datei importieren</button><div id="stayImportPanel" hidden class="card"><h3>Importvorschau</h3><label for="stayImportFile">Private JSON-Datei auswählen</label><input id="stayImportFile" type="file" accept=".json,application/json"><p id="stayImportInfo" role="status"></p><div id="stayImportRows"></div><div class="form-actions"><button type="button" id="stayImportApply" disabled>Auswahl übernehmen</button><button type="button" class="link" id="stayImportClose">Abbrechen</button></div></div>
 <button type="button" id="stayAdd">＋ Unterkunft hinzufügen</button><form id="stayForm" hidden>
 <h2 id="stayHeading">Unterkunft hinzufügen</h2>
 <label for="stayName">Name</label><input id="stayName" required maxlength="160">
@@ -634,7 +634,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.5.1 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.5.2 · Testversion</footer>
 
 </main>
 
@@ -804,7 +804,7 @@ function renderStays(){
  }
 }
 async function loadStays(user){
- const epoch=++stayEpoch;stayReady=false;stays=[];resetStay();renderStays();el("staySave").disabled=true;el("stayStatus").textContent="";
+ const epoch=++stayEpoch;stayReady=false;stays=[];stayImportReset();resetStay();renderStays();el("staySave").disabled=true;el("stayStatus").textContent="";
  if(!user)return;
  try{const snap=await getDoc(doc(db,"users",user.uid,"travel","test-accommodations"));if(epoch!==stayEpoch)return;stays=Array.isArray(snap.data()?.items)?snap.data().items:[];stayReady=true;renderStays();el("staySave").disabled=stayBusy;el("stayStatus").textContent="Unterkünfte geladen.";}catch(e){if(epoch===stayEpoch)el("stayStatus").textContent="Laden fehlgeschlagen: "+e.code;}
 }
@@ -818,6 +818,16 @@ el("stayForm").addEventListener("submit",async e=>{
  const next=[...stays.filter(x=>x.id!==item.id),item];stayBusy=true;el("staySave").disabled=true;renderStays();
  try{await setDoc(doc(db,"users",user.uid,"travel","test-accommodations"),{items:next},{merge:true});if(epoch===stayEpoch){stays=next;resetStay();el("stayStatus").textContent="✓ In der Cloud gespeichert";}}catch(e){if(epoch===stayEpoch)el("stayStatus").textContent="Speichern fehlgeschlagen: "+e.code;}finally{stayBusy=false;el("staySave").disabled=!stayReady;renderStays();}
 });
+let stayImportData=[],stayImportEpoch=-1;
+const stayImportLabels={Name:"Name",Type:"Art",In:"Anreise",Out:"Abreise",InTime:"Check-in",OutTime:"Check-out",Room:"Zimmer / Stellplatz",State:"Status",Address:"Adresse",Link:"Buchungslink",Note:"Hinweise",Phone:"Telefon",Email:"E-Mail",Preference:"Stellplatzwünsche",Amenities:"Ausstattung",Directions:"Anfahrt",Website:"Homepage"};
+function stayImportNorm(s){return String(s||"").normalize("NFKD").toLowerCase().replace(/[^a-z0-9]/g,"").replace(/campground|hotel/g,"");}
+function stayImportMatch(x,items){const names=[x.Name,...x.aliases].map(stayImportNorm);return items.filter(y=>names.includes(stayImportNorm(y.Name))||(y.In===x.In&&y.Out===x.Out&&stayImportNorm(y.Name).length>4&&names.some(n=>n.includes(stayImportNorm(y.Name))||stayImportNorm(y.Name).includes(n))));}
+function stayImportReset(){stayImportData=[];stayImportEpoch=-1;el("stayImportFile").value="";el("stayImportRows").replaceChildren();el("stayImportInfo").textContent="";el("stayImportApply").disabled=true;el("stayImportPanel").hidden=true;}
+el("stayImportOpen").onclick=()=>{if(!stayReady||stayBusy)return;stayImportReset();el("stayImportPanel").hidden=false;};
+el("stayImportClose").onclick=stayImportReset;
+function stayImportPreview(){const box=el("stayImportRows");box.replaceChildren();for(const [i,x] of stayImportData.entries()){const matches=stayImportMatch(x,stays),row=document.createElement("div");row.className="stay-item";const label=document.createElement("label"),cb=document.createElement("input");cb.type="checkbox";cb.style.width="20px";cb.style.minHeight="0";cb.dataset.index=i;const old=matches[0];const missing=old?stayFields.filter(k=>!String(old[k]||"").trim()&&x[k]):[];cb.disabled=matches.length>1||(matches.length===1&&!missing.length);cb.checked=!matches.length;label.append(cb,document.createTextNode(" "+x.Name+" · "+x.In+" – "+x.Out));row.append(label);const p=document.createElement("p");p.textContent=matches.length>1?"Mehrdeutig – kein Import":old?"Vorhanden: "+old.Name+" – nur leere Felder ergänzen (optional)":"Neu";row.append(p);for(const k of old?missing:stayFields){if(!x[k])continue;const line=document.createElement("div");line.textContent=stayImportLabels[k]+": "+x[k];line.style.overflowWrap="anywhere";row.append(line);}if(old){for(const k of stayFields.filter(k=>old[k]&&x[k]&&old[k]!==x[k])){const line=document.createElement("div");line.textContent=stayImportLabels[k]+": vorhandener Wert bleibt erhalten ("+old[k]+")";row.append(line);}}box.append(row);}el("stayImportApply").disabled=!stayImportData.length;}
+el("stayImportFile").onchange=async()=>{stayImportData=[];el("stayImportRows").replaceChildren();el("stayImportApply").disabled=true;const file=el("stayImportFile").files[0],epoch=stayEpoch;if(!file||!stayReady)return;try{if(file.size>500000)throw Error("Datei zu groß");const raw=JSON.parse(await file.text());if(epoch!==stayEpoch||el("stayImportPanel").hidden||el("stayImportFile").files[0]!==file)return;if(!Array.isArray(raw.items)||raw.items.length>100||!raw.items.length)throw Error("Ungültige Unterkunftsliste");const date=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString().slice(0,10)===v;const parsed=raw.items.map(o=>{if(!o||typeof o!=="object")throw Error("Ungültiger Eintrag");const x=Object.fromEntries(stayFields.map(k=>[k,typeof o[k]==="string"?o[k].trim():""]));x.aliases=Array.isArray(o.aliases)?o.aliases.filter(a=>typeof a==="string").slice(0,20):[];if(!x.Name||!date(x.In)||!date(x.Out)||x.Out<x.In||!["Campingplatz","Hotel","Sonstiges"].includes(x.Type)||!["Geplant","Gebucht","Noch zu buchen"].includes(x.State)||stayFields.some(k=>x[k].length>5000)||[x.Link,x.Website].some(v=>v&&!/^https?:\/\//i.test(v))||[x.InTime,x.OutTime].some(v=>v&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(v)))throw Error("Ungültige Daten: "+x.Name);return x;});if(new Set(parsed.map(x=>stayImportNorm(x.Name))).size!==parsed.length)throw Error("Doppelte Namen in Datei");stayImportData=parsed;stayImportEpoch=epoch;el("stayImportInfo").textContent=parsed.length+" Einträge geladen. Bitte Auswahl prüfen.";stayImportPreview();}catch(e){el("stayImportInfo").textContent="Importdatei nicht lesbar: "+e.message;}};
+el("stayImportApply").onclick=async()=>{if(!currentUser||!stayReady||stayBusy||stayImportEpoch!==stayEpoch)return;const selected=[...el("stayImportRows").querySelectorAll("input:checked:not(:disabled)")].map(c=>stayImportData[Number(c.dataset.index)]);if(!selected.length)return;if(!confirm(selected.length+" ausgewählte Unterkünfte übernehmen? Vorhandene Werte werden nicht überschrieben."))return;const user=currentUser,epoch=stayEpoch;stayBusy=true;el("stayImportApply").disabled=true;el("staySave").disabled=true;renderStays();try{const ref=doc(db,"users",user.uid,"travel","test-accommodations");const snap=await getDoc(ref);if(epoch!==stayEpoch)return;const next=Array.isArray(snap.data()?.items)?[...snap.data().items]:[];let count=0;for(const x of selected){const m=stayImportMatch(x,next);if(m.length>1)continue;const fields=Object.fromEntries(stayFields.map(k=>[k,x[k]]));if(!m.length){next.push({...fields,id:crypto.randomUUID()});count++;}else{const old=m[0],patch=Object.fromEntries(stayFields.filter(k=>!String(old[k]||"").trim()&&x[k]).map(k=>[k,x[k]]));if(Object.keys(patch).length){next[next.indexOf(old)]={...old,...patch};count++;}}}if(count)await setDoc(ref,{items:next},{merge:true});if(epoch===stayEpoch){stays=next;stayImportReset();el("stayStatus").textContent=count+" Unterkünfte übernommen oder ergänzt.";}}catch(e){if(epoch===stayEpoch)el("stayImportInfo").textContent="Import fehlgeschlagen: "+(e.code||e.message);}finally{stayBusy=false;el("staySave").disabled=!stayReady;el("stayImportApply").disabled=!stayImportData.length;renderStays();}};
 const dayList = el("dayList");
 function renderDayList(){
   dayList.replaceChildren();
