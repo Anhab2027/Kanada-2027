@@ -540,7 +540,17 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <div id="dayRoute"></div><div id="dayHighlights"></div><div id="dayBookings"></div><div id="dayStay" class="muted" aria-live="polite"></div>
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
-<label for="dayPlan">Aktivitäten, Fahrzeiten und Hinweise</label>
+<label for="dayMorning">Morgens</label>
+<textarea id="dayMorning" maxlength="10000" disabled></textarea>
+<label for="dayNoon">Mittags</label>
+<textarea id="dayNoon" maxlength="10000" disabled></textarea>
+<label for="dayAfternoon">Nachmittags</label>
+<textarea id="dayAfternoon" maxlength="10000" disabled></textarea>
+<label for="dayEvening">Abends</label>
+<textarea id="dayEvening" maxlength="10000" disabled></textarea>
+<label for="dayOptions">Alternativen und besondere Hinweise</label>
+<textarea id="dayOptions" maxlength="10000" disabled></textarea>
+<label for="dayPlan">Weitere Tagesnotizen (bisherige Planung)</label>
 <textarea id="dayPlan" maxlength="10000" disabled></textarea>
 <button id="saveDay" disabled>Reisetag speichern</button>
 <p id="dayStatus" class="muted" role="status"></p>
@@ -808,6 +818,11 @@ let dayLoaded = false;
 function dayControls(enabled) {
   el("dayTitle").disabled = !enabled;
   el("dayPlan").disabled = !enabled;
+  el("dayMorning").disabled = !enabled;
+  el("dayNoon").disabled = !enabled;
+  el("dayAfternoon").disabled = !enabled;
+  el("dayEvening").disabled = !enabled;
+  el("dayOptions").disabled = !enabled;
   el("saveDay").disabled = !enabled;
 }
 async function loadDay() {
@@ -823,6 +838,11 @@ async function loadDay() {
   dayControls(false);
   el("dayTitle").value = "";
   el("dayPlan").value = "";
+el("dayMorning").value = "";
+el("dayNoon").value = "";
+el("dayAfternoon").value = "";
+el("dayEvening").value = "";
+el("dayOptions").value = "";
   if (!user || !date) return;
   el("dayStatus").textContent = "Reisetag wird geladen …";
   try {
@@ -831,6 +851,11 @@ async function loadDay() {
     const data = snap.data() || {};
     el("dayTitle").value = data.title || "";
     el("dayPlan").value = data.plan || "";
+    el("dayMorning").value = data.morning || "";
+    el("dayNoon").value = data.noon || "";
+    el("dayAfternoon").value = data.afternoon || "";
+    el("dayEvening").value = data.evening || "";
+    el("dayOptions").value = data.options || "";
     dayLoaded = true;
     dayControls(true);
     el("dayStatus").textContent = snap.exists() ? "Reisetag geladen." : "Noch keine Planung vorhanden.";
@@ -844,7 +869,7 @@ el("saveDay").addEventListener("click", async () => {
   const user = currentUser;
   const request = dayRequest;
   const date = el("dayDate").value;
-  const data = {title:el("dayTitle").value,plan:el("dayPlan").value};
+  const data = {title:el("dayTitle").value,plan:el("dayPlan").value,morning:el("dayMorning").value,noon:el("dayNoon").value,afternoon:el("dayAfternoon").value,evening:el("dayEvening").value,options:el("dayOptions").value};
   dayBusy = true;
   el("dayDate").disabled = true;
   renderDayList();
@@ -933,6 +958,11 @@ dayControls(false);
 el("dayDate").disabled = !user;
 el("dayTitle").value = "";
 el("dayPlan").value = "";
+el("dayMorning").value = "";
+el("dayNoon").value = "";
+el("dayAfternoon").value = "";
+el("dayEvening").value = "";
+el("dayOptions").value = "";
 el("dayStatus").textContent = "";
 if(user) loadDay(); else renderDayList();
 el("loginCard").hidden = !!user;
