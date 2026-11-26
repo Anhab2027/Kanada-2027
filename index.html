@@ -168,19 +168,134 @@ input, textarea {
 button:focus-visible {
   outline: 3px solid #799EAF;
 }
+/* Pacific Panorama – Header */
+
+.panorama-header {
+  position: relative;
+  min-height: 340px;
+  padding: calc(24px + env(safe-area-inset-top)) 16px 65px;
+  background-color: #254657;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(15,35,48,0.55),
+      rgba(15,35,48,0.18) 55%,
+      rgba(15,35,48,0.50)
+    ),
+    url('pacific-coast.PNG');
+  background-size: cover;
+  background-position: center;
+  border: none;
+  color: white;
+  text-align: center;
+  overflow: hidden;
+}
+
+.panorama-content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: auto;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+
+.panorama-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  margin-bottom: 14px;
+}
+
+.panorama-emblem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 24px;
+}
+
+.panorama-emblem span {
+  width: 55px;
+  height: 1px;
+  background: rgba(255,255,255,0.8);
+}
+
+.panorama-header h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(42px, 10vw, 76px);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: white;
+  margin: 10px 0;
+  line-height: 1.15;
+}
+
+.panorama-subtitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(17px, 4.5vw, 25px);
+  margin: 10px 0 22px;
+}
+
+.panorama-banner {
+  display: inline-block;
+  background: #C8102E;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-shadow: none;
+}
+
+.panorama-destinations {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 16px 0 0;
+}
+
+.panorama-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 45px;
+  display: block;
+}
 </style>
 </head>
 <body>
 
-<header>
-<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0;">
-  <span style="width:40px;height:1px;background:#C8102E;"></span>
-  <span style="font-size:26px;color:#C8102E;">&#x1F341;&#xFE0E;</span>
-  <span style="width:40px;height:1px;background:#C8102E;"></span>
-</div>
-<h1 style="color:#315747;letter-spacing:3px;margin:8px 0;">KANADA 2027</h1>
-<p style="color:#315747;font-size:14px;margin:6px 0;">Unser Familienabenteuer</p>
-<p style="color:#315747;font-size:11px;margin:8px 0;">British Columbia · Vancouver Island · Whistler</p>
+<header class="panorama-header">
+  <div class="panorama-content">
+    <div class="panorama-eyebrow">CANADA · WEST COAST</div>
+
+    <div class="panorama-emblem">
+      <span></span>
+      🍁
+      <span></span>
+    </div>
+
+    <h1>Kanada 2027</h1>
+
+    <p class="panorama-subtitle">
+      Zwischen Stadt, Küste und Wildnis
+    </p>
+
+    <div class="panorama-banner">
+      UNSER FAMILIENABENTEUER
+    </div>
+
+    <p class="panorama-destinations">
+      Vancouver · Vancouver Island · Whistler
+    </p>
+  </div>
+
+  <svg class="panorama-wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#BDD3E2" d="M0,35 C480,110 960,-25 1440,35 L1440,70 L0,70 Z"/>
+  </svg>
 </header>
 
 <main>
