@@ -356,7 +356,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 .booking-item strong,.stay-item strong{font-size:16px;font-weight:600}
 .booking-item>div,.stay-item>p,.stay-item>div,#bookingStays p{font-size:14px;line-height:1.5}
 .page:not(#overview) .muted{font-size:14px}
-#bookings>.card{background:transparent;box-shadow:none;padding:0}#bookings>.card>h2,#bookings>.card>p{margin-left:4px;margin-right:4px}.booking-group{border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #2546570c}.booking-group h3{margin:0 0 12px!important;padding-bottom:10px;border-bottom:1px solid #25465722}.booking-open{background:#FFF4E4}.booking-open h3{color:#92400E}.booking-confirmed{background:#EAF3EC}.booking-confirmed h3{color:#166534}.booking-stays{background:#F1F7FA}.booking-item:last-child{border-bottom:0;padding-bottom:0}.booking-group .booking-item:first-child{padding-top:0}#bookingAdd{width:100%;margin:4px 0 12px;min-height:48px}#bookingForm{background:#F1F7FA;border-radius:16px;padding:15px;margin:12px 0}#bookingForm h3{margin-top:0}.booking-group p:last-child{margin-bottom:0}</style>
+#bookings>.card{background:transparent;box-shadow:none;padding:0}#bookings>.card>h2,#bookings>.card>p{margin-left:4px;margin-right:4px}.booking-group{border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #2546570c}.booking-group h3{margin:0 0 12px!important;padding-bottom:10px;border-bottom:1px solid #25465722}.booking-open{background:#FFF4E4}.booking-open h3{color:#92400E}.booking-confirmed{background:#EAF3EC}.booking-confirmed h3{color:#166534}.booking-stays{background:#F1F7FA}.booking-item:last-child{border-bottom:0;padding-bottom:0}.booking-group .booking-item:first-child{padding-top:0}#bookingAdd{width:100%;margin:4px 0 12px;min-height:48px}#bookingForm{background:#F1F7FA;border-radius:16px;padding:15px;margin:12px 0}#bookingForm h3{margin-top:0}.booking-group p:last-child{margin-bottom:0}#stayList .stay-item{background:#F1F7FA;border:0;border-left:4px solid #799EAF;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 2px 8px #25465712}#stayList .stay-item[data-status="Gebucht"]{border-left-color:#166534;background:#EAF3EC}#stayList .stay-item[data-status="Noch zu buchen"]{border-left-color:#B45309;background:#FFF4E4}#stayAdd{width:100%;min-height:48px;margin:8px 0}#stayForm{margin-top:16px;padding-top:12px;border-top:1px solid #A9C5D8}#stayForm h2{font-family:Inter,Arial,sans-serif;font-size:17px;font-weight:600}</style>
 </head>
 <body>
 
@@ -529,7 +529,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
     <h2>Unterkünfte</h2>
     <p>Unsere Hotels und Campgrounds.</p>
     <div id="stayList"></div>
-<form id="stayForm">
+<button type="button" id="stayAdd">＋ Unterkunft hinzufügen</button><form id="stayForm" hidden>
 <h2 id="stayHeading">Unterkunft hinzufügen</h2>
 <label for="stayName">Name</label><input id="stayName" required maxlength="160">
 <label for="stayType">Art</label><select id="stayType"><option>Campingplatz</option><option>Hotel</option><option>Sonstiges</option></select>
@@ -671,7 +671,7 @@ el("bookingForm").addEventListener("submit",e=>{e.preventDefault();if(!bkReady||
 
 const stayFields=["Name","Type","In","InTime","Out","OutTime","Room","State","Address","Link","Note"];
 let stays=[],stayEdit=null,stayReady=false,stayEpoch=0,stayBusy=false;
-function resetStay(){el("stayForm").reset();stayEdit=null;el("stayHeading").textContent="Unterkunft hinzufügen";}
+function resetStay(){el("stayForm").hidden=true;el("stayAdd").hidden=false;el("stayForm").reset();stayEdit=null;el("stayHeading").textContent="Unterkunft hinzufügen";}
 function renderDayStay(){
  const date=el("dayDate").value;
  const box=el("dayStay");box.replaceChildren();
@@ -684,7 +684,7 @@ function renderStays(){
  renderDayStay();renderBookingStays();
  const list=el("stayList");list.replaceChildren();
  for(const item of [...stays].sort((a,b)=>a.In.localeCompare(b.In))){
- const div=document.createElement("div");div.className="stay-item";
+ const div=document.createElement("div");div.className="stay-item";div.dataset.status=item.State;
  const title=document.createElement("strong");title.textContent=item.Name;div.append(title);
  const p=document.createElement("p");const nights=Math.round((Date.parse(item.Out)-Date.parse(item.In))/86400000);
  p.textContent=item.In.split("-").reverse().join(".")+" – "+item.Out.split("-").reverse().join(".")+" · "+nights+(nights===1?" Nacht":" Nächte");div.append(p);
@@ -694,7 +694,7 @@ function renderStays(){
  function link(label,url){const a=document.createElement("a");a.textContent=label;a.href=url;a.target="_blank";a.rel="noopener noreferrer";div.append(a);}
  if(item.Address)link("Navigation","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address));
  if(/^https?:\/\//i.test(item.Link||""))link("Buchungslink",item.Link);
- const b=document.createElement("button");b.type="button";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};div.append(b);
+ const b=document.createElement("button");b.type="button";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{el("stayForm").hidden=false;el("stayAdd").hidden=true;stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};div.append(b);
  const del=document.createElement("button");del.type="button";del.className="link";del.textContent="Löschen";del.disabled=stayBusy||!stayReady;del.onclick=async()=>{
  if(!currentUser||stayBusy||!stayReady||!confirm("Unterkunft „"+item.Name+"“ wirklich löschen?"))return;
  const user=currentUser,epoch=stayEpoch,next=stays.filter(x=>x.id!==item.id);
@@ -708,7 +708,7 @@ async function loadStays(user){
  if(!user)return;
  try{const snap=await getDoc(doc(db,"users",user.uid,"travel","accommodations"));if(epoch!==stayEpoch)return;stays=Array.isArray(snap.data()?.items)?snap.data().items:[];stayReady=true;renderStays();el("staySave").disabled=stayBusy;el("stayStatus").textContent="Unterkünfte geladen.";}catch(e){if(epoch===stayEpoch)el("stayStatus").textContent="Laden fehlgeschlagen: "+e.code;}
 }
-el("stayNew").onclick=()=>{if(!stayBusy)resetStay();};
+el("stayAdd").onclick=()=>{if(!stayBusy){resetStay();el("stayForm").hidden=false;el("stayAdd").hidden=true;el("stayHeading").scrollIntoView({block:"start"});}};el("stayNew").textContent="Abbrechen";el("stayNew").onclick=()=>{if(!stayBusy)resetStay();};
 el("stayForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!currentUser||!stayReady||stayBusy)return;
  const user=currentUser,epoch=stayEpoch,item={id:stayEdit||crypto.randomUUID()};
