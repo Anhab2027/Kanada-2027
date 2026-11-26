@@ -385,7 +385,12 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 .page:not(#overview) input:not([type=checkbox]),.page:not(#overview) textarea,.page:not(#overview) select{font:inherit;font-size:16px;min-height:46px;border:1px solid #A9C5D8;border-radius:12px;background:white;color:#254657;padding:12px;max-width:100%;min-width:0}
 .stay-item>a,.booking-item>a,.route-item>a{display:block;width:fit-content;max-width:100%;min-height:44px;padding:10px 0;margin:6px 0;color:#254657;font-weight:600;font-size:14px}
 @media(max-width:759px){.item-actions button{flex:1;min-width:100px}}
-.booking-open,.booking-confirmed,.booking-stays{background:#F1F7FA}.booking-open h3,.booking-confirmed h3,.booking-stays h3{color:#254657}</style>
+.booking-open,.booking-confirmed,.booking-stays{background:#F1F7FA}.booking-open h3,.booking-confirmed h3,.booking-stays h3{color:#254657}/* Alternating booking cards */
+#bookingOpen>.booking-item,#bookingConfirmed>.booking-item{background:#FFFFFF;border:0;border-radius:12px;padding:14px;margin:12px 0}
+#bookingOpen>.booking-item:nth-child(even),#bookingConfirmed>.booking-item:nth-child(even){background:#E2EDF4}
+#bookingOpen>.booking-item:last-child,#bookingConfirmed>.booking-item:last-child{margin-bottom:0}
+.booking-item .item-edit{background:#D5E5EF}
+</style>
 </head>
 <body>
 
