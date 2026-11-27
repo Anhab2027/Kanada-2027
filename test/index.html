@@ -441,9 +441,9 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 <nav>
 <button data-page="overview"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v11h-7v-7h-4v7H3z"/></svg>Start</button>
-<button data-page="days"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg>Tagesplan</button>
-<button data-page="bookings"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5h18v5a2 2 0 0 0 0 4v5H3v-5a2 2 0 0 0 0-4zM15 5v3m0 3v2m0 3v3"/></svg>Buchungen</button>
-<button data-page="route"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16"/></svg>Route</button>
+
+
+
 
 <button data-page="more"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Mehr</button>
 </nav>
@@ -489,7 +489,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
   
 
-  <button class="dashboard-tile" data-go="route"><svg viewBox="0 0 24 24"><path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16"/></svg><strong>Reiseroute</strong><small>Unsere Etappen</small></button>
+  
 <button class="dashboard-tile" data-go="highlights">
     <svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
     <strong>Highlights</strong>
@@ -508,11 +508,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
     <small>Sonne, Wind &amp; Meer</small>
   </button>
 
-  <button class="dashboard-tile" data-go="more">
-    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="16" height="18" rx="2"/><path d="M3 7h4M3 12h4M3 17h4M10 8h7M10 12h7M10 16h5"/></svg>
-    <strong>Notizen</strong>
-    <small>Platz für unsere Ideen</small>
-  </button>
+  
 
 </div>
 
@@ -532,7 +528,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayDate">Datum</label>
 <input id="dayDate" type="date" min="2027-07-17" max="2027-08-09" value="2027-07-18" disabled>
 
-<div id="dayRead" aria-live="polite"></div><details class="day-meta"><summary>🎟️ Buchungen und Reisedetails</summary><div id="dayBookings"></div><div id="dayRoute"></div><div id="dayHighlights"></div></details><details class="day-meta"><summary>🛏️ Unterkunft und Check-in / Check-out</summary><div id="dayStay" class="muted" aria-live="polite"></div></details><button id="dayEdit" type="button" disabled>Tagesplanung bearbeiten</button><div id="dayEditor" hidden><div id="dayCardsEditor" hidden><h3>Aktivitäten bearbeiten</h3><div id="dayCardsForm"></div><button type="button" id="dayCardAdd">+ Aktivität hinzufügen</button><details><summary>Bisherige Tagesabschnitte bearbeiten</summary><p>Diese bleiben als zusätzliche Daten erhalten.</p></details></div><label for="dayTitle">Ort / Etappe</label>
+<div id="dayRead" aria-live="polite"></div><details class="day-meta"><summary>🎟️ Buchungen und Reisedetails</summary><div id="dayBookings"></div><div id="dayRoute"></div><div id="dayHighlights"></div></details><details class="day-meta"><summary id="dayStaySummary">🛏️ Unterkunft</summary><div id="dayStay" class="muted" aria-live="polite"></div></details><button id="dayEdit" type="button" disabled>Tagesplanung bearbeiten</button><div id="dayEditor" hidden><div id="dayCardsEditor" hidden><h3>Aktivitäten bearbeiten</h3><div id="dayCardsForm"></div><button type="button" id="dayCardAdd">+ Aktivität hinzufügen</button><details><summary>Bisherige Tagesabschnitte bearbeiten</summary><p>Diese bleiben als zusätzliche Daten erhalten.</p></details></div><label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayMorning">Morgens</label>
 <textarea id="dayMorning" maxlength="10000" disabled></textarea><div class="day-links" id="dayMorningLinks"></div>
@@ -617,7 +613,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 <section id="more" class="page" hidden>
 <div class="card backup-card"><h2>Datensicherung &amp; Offline-Nutzung</h2><p>Gespeicherte Reisedaten als private JSON-Datei sichern.</p><button type="button" id="backupDownload">Sicherung herunterladen</button><button type="button" id="offlinePrepare">Offline-Daten aktualisieren</button><button type="button" id="offlineDownload">Offline-Reiseplan herunterladen</button><p id="backupStatus" role="status"></p><details><summary>Sicherung wiederherstellen</summary><p>Nur eigene Sicherungsdateien verwenden. Vorhandene Dokumente werden nicht überschrieben; fehlende Dokumente können ergänzt werden.</p><input id="restoreFile" type="file" accept=".json,application/json"><button type="button" id="restorePreview">Datei prüfen</button><div id="restoreReport" role="status"></div><button type="button" id="restoreApply" disabled>Fehlende Dokumente wiederherstellen</button></details></div>
-<div class="card">
+<div class="card" style="display:none">
 <h2>📝 Reisenotizen</h2>
 <div id="topicList"></div><button id="topicAdd" type="button" disabled>＋ Notiz hinzufügen</button><form id="topicForm" hidden><label for="topicTitle">Überschrift</label><input id="topicTitle" required maxlength="160"><label for="topicText">Notiz</label><textarea id="topicText" maxlength="30000"></textarea><div class="form-actions"><button type="submit">Speichern</button><button id="topicCancel" type="button" class="link">Abbrechen</button></div></form><p id="topicStatus" role="status"></p><h3>Bisherige Reisenotizen</h3><textarea id="noteText" placeholder="Unsere Reisenotizen …" disabled></textarea>
 <div id="legacyNoteLinks" class="day-links"></div><button id="saveNotes" disabled>Notizen speichern</button>
@@ -629,7 +625,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.19.7 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.20.0 · Testversion</footer>
 
 </main>
 
@@ -677,7 +673,7 @@ const el = id => document.getElementById(id);
 
 let currentUser = null;
 let topics=[],topicEdit=null,topicReady=false,topicBusy=false,topicEpoch=0;
-function noteLinks(box,value){for(const raw of new Set(value.match(/https?:\/\/[^\s<>"']+/gi)||[])){try{const url=new URL(raw.replace(/[.,;!?]+$/,""));if(!["http:","https:"].includes(url.protocol))continue;const a=document.createElement("a");a.href=url.href;a.textContent=box.closest(".day-activity-card")?(/google\.com\/maps|maps\.app\.goo\.gl|maps\.google|maps\.apple/i.test(url.href)?"📍 Navigation öffnen":url.hostname.replace(/^www\./,"")+" – Informationen öffnen"):url.href;a.target="_blank";a.rel="noopener noreferrer";box.append(a);}catch{}}}
+function noteLinks(box,value){for(const raw of new Set(value.match(/https?:\/\/[^\s<>"']+/gi)||[])){try{const url=new URL(raw.replace(/[.,;!?]+$/,""));if(!["http:","https:"].includes(url.protocol))continue;const a=document.createElement("a");a.href=url.href;a.textContent=box.closest(".day-activity-card,.day-read-card,.day-meta")?(/google\.com\/maps|maps\.app\.goo\.gl|maps\.google|maps\.apple/i.test(url.href)?"📍 Navigation öffnen":url.hostname.replace(/^www\./,"")+" – Informationen öffnen"):url.href;a.target="_blank";a.rel="noopener noreferrer";box.append(a);}catch{}}}
 function legacyLinks(){const box=el("legacyNoteLinks");box.replaceChildren();noteLinks(box,el("noteText").value);}
 el("noteText").addEventListener("input",legacyLinks);
 function resetTopic(){topicEdit=null;el("topicForm").reset();el("topicForm").hidden=true;el("topicAdd").hidden=false;}
@@ -832,9 +828,10 @@ function resetStay(){el("stayForm").hidden=true;el("stayAdd").hidden=false;el("s
 function renderDayStay(){
  const date=el("dayDate").value;
  const box=el("dayStay");box.replaceChildren();
- if(!stayReady||!date)return;
- for(const item of stays.filter(x=>x.In<=date&&date<=x.Out)){
- const p=document.createElement("p");p.className="day-stay-card";p.textContent="🛏️ "+(item.Out===date?"Abreise: ":item.In===date?"Anreise / Übernachtung: ":"Übernachtung: ")+item.Name+(item.Out===date&&item.OutTime?" · Check-out "+item.OutTime+" Uhr":item.In===date&&item.InTime?" · Check-in "+item.InTime+" Uhr":"");box.append(p);
+ el("dayStaySummary").textContent="🛏️ Unterkunft";if(!stayReady||!date)return;
+ const matching=stays.filter(x=>x.In<=date&&date<=x.Out);el("dayStaySummary").textContent="🛏️ "+(matching.map(x=>x.Name).join(" / ")||"Unterkunft");
+ for(const item of matching){
+ const p=document.createElement("p");p.className="day-stay-card";p.textContent="🛏️ "+(item.Out===date?"Abreise: ":item.In===date?"Anreise / Übernachtung: ":"Übernachtung: ")+item.Name+(item.Out===date&&item.OutTime?" · Check-out "+item.OutTime+" Uhr":item.In===date&&item.InTime?" · Check-in "+item.InTime+" Uhr":"");box.append(p);for(const [label,value] of [["Status",item.State],["Stellplatz / Zimmer",item.Room],["Check-in",item.InTime],["Check-out",item.OutTime],["Ausstattung",item.Amenities],["Adresse",item.Address]])if(value){const line=document.createElement("p");line.textContent=label+": "+value;box.append(line);}if(item.Address){const a=document.createElement("a");a.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address);a.textContent="Navigation öffnen";a.target="_blank";a.rel="noopener noreferrer";box.append(a);}
  }
 }
 function renderStays(){refreshTripMap();
@@ -948,7 +945,7 @@ function renderDayLinks(){for(const k of dayLinkFields){const box=el("day"+k+"Li
 for(const k of dayLinkFields)el("day"+k).addEventListener("input",renderDayLinks);
 const dayReadFields=[["Morning","☀️ Morgens"],["Noon","🌤 Mittags"],["Afternoon","🌿 Nachmittags"],["Evening","🌙 Abends"],["Options","Alternativen und besondere Hinweise"],["Plan","Weitere Tagesnotizen"]];
 let dayEditing=false;
-function dayReadText(box,value,key){const lines=value.split(/\n+/).filter(x=>x.trim());const main=["Morning","Noon","Afternoon","Evening"].includes(key);let parts=lines;if(main&&lines.length===1&&value.length<=420&&!/https?:\/\//i.test(value)){parts=value.split(/(?<=[.!?;])\s+(?=[A-ZÄÖÜ])/).filter(x=>x.trim());}if(parts.length>1&&(main||lines.every(x=>/^\s*[•-]\s+/.test(x)))){const ul=document.createElement("ul");for(const line of parts){const li=document.createElement("li");li.textContent=line.replace(/^\s*[•-]\s+/,"");ul.append(li);}box.append(ul);}else{const p=document.createElement("p");p.textContent=value;box.append(p);}noteLinks(box,value);}
+function dayReadText(box,value,key){const originalValue=value;value=value.replace(/https?:\/\/[^\s<>"']+/gi,"").replace(/^[ \t]*[-•]?[ \t]*$/gm,"").trim();const lines=value.split(/\n+/).filter(x=>x.trim());const main=["Morning","Noon","Afternoon","Evening"].includes(key);let parts=lines;if(main&&lines.length===1&&value.length<=420&&!/https?:\/\//i.test(value)){parts=value.split(/(?<=[.!?;])\s+(?=[A-ZÄÖÜ])/).filter(x=>x.trim());}if(parts.length>1&&(main||lines.every(x=>/^\s*[•-]\s+/.test(x)))){const ul=document.createElement("ul");for(const line of parts){const li=document.createElement("li");li.textContent=line.replace(/^\s*[•-]\s+/,"");ul.append(li);}box.append(ul);}else{const p=document.createElement("p");p.textContent=value;box.append(p);}noteLinks(box,originalValue);}
 const cardMapPlaces=[["Hot Springs Cove Tour","Ahous Adventures Tofino BC"],["Whale Watching","Eagle Wing Tours Fishermans Wharf Victoria BC"],["Surf Grove","Surf Grove Campground Tofino BC"],["Cox Bay","Cox Bay Beach Tofino BC"],["Goldstream","Goldstream Provincial Park Campground BC"],["Salish Seaside","Salish Seaside RV Haven Victoria BC"],["Country Maples","Country Maples RV Resort Chemainus BC"],["Englishman River Falls","Englishman River Falls Provincial Park BC"],["Stamp River","Stamp River Provincial Park BC"],["Living Forest","Living Forest Oceanside Campground Nanaimo BC"],["Klahanie","Klahanie Campground Squamish BC"],["Riverside RV","Riverside Resort Whistler BC"],["Capilano River","Capilano River RV Park West Vancouver BC"],["Sea to Sky Gondola","Sea to Sky Gondola Squamish BC"],["Cathedral Grove","Cathedral Grove MacMillan Provincial Park BC"],["Blue Horizon","Blue Horizon Hotel Vancouver BC"],["Hyatt Place","Hyatt Place Frankfurt Airport Germany"],["Day Lot 3","Whistler Day Lot 3 East Oversize Parking, 4350 Blackcomb Way, Whistler, BC, Canada"],["Shannon Falls","Shannon Falls Provincial Park BC"],["North Island Wildlife","North Island Wildlife Recovery Centre Errington BC"],["Designer Outlet","McArthurGlen Designer Outlet Vancouver Airport Richmond BC"],["Tonquin","Tonquin Trail Tofino BC"],["WildPlay","WildPlay Nanaimo BC"],["Sandcut Beach","Sandcut Beach Jordan River BC"],["Kayaking Tour","Paddle West Kayaking Tofino BC"]];
 const officialCardInfo=[["Goldstream","Anfahrt zum Campground über Westshore Parkway und Amy Road. Für den separaten Tagesparkplatz die Kreuzung Highway 1 / Finlayson Arm Road nutzen. Stand 27.11.2026: Tor 7–23 Uhr; Niagara Falls Trail wegen Wegschäden gesperrt, keine Alternativroute. Prospector’s Trail teilweise gesperrt. Nicht über den Highway zu Fuß wechseln. Vor Reise erneut prüfen.","https://bcparks.ca/goldstream-park/"],["Englishman River Falls","Anfahrt über Errington Road ab Highway 4. Parktor laut BC Parks täglich 7–23 Uhr. Stand 27.11.2026: rund 3 km Wegenetz; zwei Wegabschnitte am oberen Wasserfall nach Sturmschäden gesperrt. Baden unterhalb des unteren Wasserfalls nur bei geeigneten Wasserbedingungen; keine Badeaufsicht. Sperrungen vor Besuch prüfen.","https://bcparks.ca/englishman-river-falls-park/"],["Stamp River","Vom Day-use-Parkplatz etwa 500 m zur Fischtreppe und zum Wasserfall, weitere 2 km Waldwege. Stand 27.11.2026: BC Parks warnt vor Strömung und rutschigen Ufern; kein Baden oder Treibenlassen im Park.","https://bcparks.ca/stamp-river-park/"],["Whistler|Day Lot 3|Peak 2 Peak|PEAK 2 PEAK","Wohnmobil: Oversize Lot an der Ostseite von Day Lot 3. Stand 27.11.2026: 45 CAD/Tag oder 5,25 CAD/Stunde, kostenpflichtig 8–17 Uhr. PayByPhone 42266. Zufahrt über Blackcomb Way beim Audain Art Museum (4350 Blackcomb Way); ausgeschilderte Oversize-Stellplätze nutzen. Maximal 24 Stunden im Sommer; kein Camping. Maßgeblich sind die Tarife der Gemeinde, nicht die niedrigeren Angaben des Gondelbetreibers. Preise 2027 erneut prüfen.","https://www.whistler.ca/transportation/parking/where-to-park-in-whistler/"],["Hot Springs Cove Tour","Tour 5,5 Stunden; 2 km Holzsteg je Richtung, etwa 30–35 Minuten pro Weg, mittelschwer, zahlreiche Stufen (Anbieter: rund 700). 1,5–2 Stunden an den Quellen. Lunch, Wasser ohne Glasbehälter, Badezeug und Handtuch mitnehmen.","https://ahousadventures.com/tours/hot-springs/"]];
 const cardOfficialSites=[["Sea to Sky Gondola","https://www.seatoskygondola.com/"],["BC Ferries","https://www.bcferries.com/"],["Cathedral Grove","https://bcparks.ca/macmillan-park/"],["Shannon Falls","https://bcparks.ca/shannon-falls-park/"],["Whistler|PEAK 2 PEAK","https://www.whistlerblackcomb.com/"],["Surf Grove","https://surfgrove.com/"],["Living Forest","https://www.livingforest.com/"],["CanaDream","https://www.canadream.com/"],["Designer Outlet","https://www.mcarthurglen.com/en/outlets/ca/designer-outlet-vancouver/"]];
