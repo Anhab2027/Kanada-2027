@@ -629,7 +629,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.19.3 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.19.4 · Testversion</footer>
 
 </main>
 
@@ -669,6 +669,7 @@ async function setDoc(...args){if(!navigator.onLine)throw Error("Offline nur Les
 async function runTransaction(...args){if(!navigator.onLine)throw Error("Offline nur Lesezugriff");const result=await firebaseRunTransaction(...args);scheduleOffline();return result;}
 
 const offlineKey=uid=>"kanada-test-offline-v1:"+uid;
+function updateLocalDocument(uid,key,data){try{const raw=localStorage.getItem(offlineKey(uid));if(!raw)return;const saved=JSON.parse(raw);saved.documents[key]=data;localStorage.setItem(offlineKey(uid),JSON.stringify(saved));}catch(e){console.warn("Offline-Kopie konnte nicht aktualisiert werden",e);}}
 function offlineSnapshot(ref){const uid=currentUser?.uid;if(!uid||!ref.path.startsWith("users/"+uid+"/travel/"))throw Error("Offline-Daten nicht verfügbar");const raw=localStorage.getItem(offlineKey(uid));if(!raw)throw Error("Offline-Zugriff noch nicht vorbereitet");const saved=JSON.parse(raw);const key=ref.id;if(!Object.prototype.hasOwnProperty.call(saved.documents,key))throw Error("Offline-Dokument fehlt");const data=saved.documents[key];return {exists:()=>data!==null,data:()=>data,metadata:{fromCache:true}};}
 async function getDoc(ref){if(!navigator.onLine)return offlineSnapshot(ref);try{const snap=await firebaseGetDoc(ref);if(snap.metadata.fromCache){try{return offlineSnapshot(ref);}catch(e){}}return snap;}catch(e){if(e.code==="unavailable")return offlineSnapshot(ref);throw e;}}
 
@@ -691,7 +692,7 @@ function checkQueue(uid){try{return JSON.parse(localStorage.getItem(checkQueueKe
 function applyCheckQueue(items,queue){return items.map(x=>{const p=queue.find(y=>y.id===x.id);return p?{...x,Done:p.done}:x;});}
 let checkSyncBusy=false;
 async function toggleCheck(id,done){const user=currentUser;if(!user||!clReady||clBusy||checkSyncBusy)return;try{const queue=checkQueue(user.uid).filter(x=>x.id!==id);queue.push({id,done});localStorage.setItem(checkQueueKey(user.uid),JSON.stringify(queue));checks=applyCheckQueue(checks,queue);renderChecks();el("clStatus").textContent="Lokal gespeichert – Abgleich ausstehend.";if(navigator.onLine)await syncChecks();}catch(e){el("clStatus").textContent="Lokales Speichern fehlgeschlagen.";renderChecks();}}
-async function syncChecks(){const user=currentUser;if(!user||!navigator.onLine||checkSyncBusy||clBusy)return;const queue=checkQueue(user.uid);if(!queue.length)return;checkSyncBusy=true;renderChecks();try{const result=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-checklists");const snap=await tx.get(ref);const items=snap.data()?.items;if(!Array.isArray(items)||queue.some(p=>!items.some(x=>x.id===p.id)))throw Error("Aufgabe fehlt");const next=applyCheckQueue(items,queue);tx.set(ref,{items:next},{merge:true});return next;});if(currentUser?.uid!==user.uid)return;localStorage.removeItem(checkQueueKey(user.uid));checks=result;el("clStatus").textContent="✓ Checkliste synchronisiert";}catch(e){if(currentUser?.uid===user.uid)el("clStatus").textContent="Abgleich offen – lokale Häkchen bleiben erhalten.";}finally{checkSyncBusy=false;renderChecks();}}
+async function syncChecks(){const user=currentUser;if(!user||!navigator.onLine||checkSyncBusy||clBusy)return;const queue=checkQueue(user.uid);if(!queue.length)return;checkSyncBusy=true;renderChecks();try{const result=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-checklists");const snap=await tx.get(ref);const items=snap.data()?.items;if(!Array.isArray(items)||queue.some(p=>!items.some(x=>x.id===p.id)))throw Error("Aufgabe fehlt");const next=applyCheckQueue(items,queue);tx.set(ref,{items:next},{merge:true});return next;});if(currentUser?.uid!==user.uid)return;localStorage.removeItem(checkQueueKey(user.uid));checks=result;updateLocalDocument(user.uid,"test-checklists",{items:result});el("clStatus").textContent="✓ Checkliste synchronisiert";}catch(e){if(currentUser?.uid===user.uid)el("clStatus").textContent="Abgleich offen – lokale Häkchen bleiben erhalten.";}finally{checkSyncBusy=false;renderChecks();}}
 window.addEventListener("online",syncChecks);
 window.addEventListener("online",renderChecks);window.addEventListener("offline",renderChecks);
 
@@ -974,14 +975,14 @@ let cardDraft=[];
 function validActivityCards(a){return Array.isArray(a)&&a.length<=30&&a.every(x=>x&&typeof x.title==="string"&&x.title.trim()&&["subtitle","start","end","status","image","icon","startLabel","endLabel"].every(k=>x[k]===undefined||typeof x[k]==="string")&&(x.steps===undefined||Array.isArray(x.steps)&&x.steps.every(t=>typeof t==="string"))&&(x.details===undefined||Array.isArray(x.details)&&x.details.every(d=>d&&typeof d.title==="string"&&typeof d.text==="string")));}
 function renderCardEditor(){const root=el("dayCardsForm");root.replaceChildren();function field(parent,obj,key,label,multi=false){const l=document.createElement("label");l.textContent=label;const a=document.createElement(multi?"textarea":"input");if(!multi)a.type="text";a.value=key==="steps"?(obj[key]||[]).join("\n"):obj[key]||"";a.oninput=()=>{obj[key]=key==="steps"?a.value.split("\n").filter(x=>x.trim()):a.value;};l.append(a);parent.append(l);}function action(parent,label,fn){const b=document.createElement("button");b.type="button";b.textContent=label;b.onclick=fn;parent.append(b);}cardDraft.forEach((x,i)=>{const d=document.createElement("details");d.className="card-edit";const h=document.createElement("summary");h.textContent=x.title||"Neue Aktivität";d.append(h);for(const [k,l] of [["title","Titel"],["subtitle","Untertitel"],["start","Beginn"],["end","Ende"],["status","Buchungsstatus"],["image","Foto-URL (HTTPS)"]])field(d,x,k,l);field(d,x,"steps","Programmpunkte (je Zeile ein Punkt)",true);if(!Array.isArray(x.details))x.details=[];x.details.forEach((y,j)=>{const section=document.createElement("div");field(section,y,"title","Detailüberschrift");field(section,y,"text","Detailtext / Links",true);action(section,"Detail entfernen",()=>{x.details.splice(j,1);renderCardEditor();});d.append(section);});action(d,"+ Detail hinzufügen",()=>{x.details.push({title:"",text:""});renderCardEditor();root.children[i].open=true;});if(i<cardDraft.length-1)action(d,"Nach unten",()=>{[cardDraft[i+1],cardDraft[i]]=[cardDraft[i],cardDraft[i+1]];renderCardEditor();root.children[i+1].open=true;});if(i>0)action(d,"Nach oben",()=>{[cardDraft[i-1],cardDraft[i]]=[cardDraft[i],cardDraft[i-1]];renderCardEditor();});action(d,"Aktivität entfernen",()=>{if(confirm("Aktivität entfernen? Erst beim Speichern wird die Änderung übernommen.")){cardDraft.splice(i,1);renderCardEditor();}});root.append(d);});el("dayCardAdd").onclick=()=>{if(cardDraft.length>=30){alert("Maximal 30 Aktivitäten pro Tag.");return;}cardDraft.push({title:"Neue Aktivität",steps:[],details:[]});renderCardEditor();root.lastElementChild.open=true;};}
 function dayMode(edit){dayEditing=edit;el("dayCardsEditor").hidden=!edit; if(edit){cardDraft=JSON.parse(JSON.stringify(dayActivities));renderCardEditor();}el("dayEditor").hidden=!edit;el("dayRead").hidden=edit;el("dayEdit").hidden=edit;el("dayImportOpen").hidden=edit;if(edit){for(const k of dayLinkFields){const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";}}else renderDayRead();}
-el("dayEdit").onclick=()=>{if(dayLoaded&&!dayBusy)dayMode(true);};
+el("dayEdit").onclick=()=>{if(dayLoaded&&!dayBusy&&!daySyncBusy)dayMode(true);};
 el("dayCancel").onclick=()=>{if(!dayBusy&&confirm("Änderungen verwerfen?"))loadDay();};
 for(const k of dayLinkFields)el("day"+k).addEventListener("input",()=>{const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";});
 let dayBase={},daySyncBusy=false;
 const dayQueueKey=uid=>"kanada-test-day-queue:"+uid;
 function dayQueue(uid){try{return JSON.parse(localStorage.getItem(dayQueueKey(uid))||"{}");}catch(e){return {};}}
 function dayValue(v,k){return v?.[k]??(k==="activityCards"?"[]":"");}
-async function syncDays(){const user=currentUser;if(!user||!navigator.onLine||daySyncBusy||dayBusy)return;daySyncBusy=true;try{for(const [date,p] of Object.entries(dayQueue(user.uid))){if(currentUser?.uid!==user.uid)return;const ok=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);const remote=snap.data()||{};if(Object.keys(p.patch).some(k=>dayValue(remote,k)!==dayValue(p.base,k)&&dayValue(remote,k)!==p.patch[k]))return false;tx.set(ref,p.patch,{merge:true});return true;});if(currentUser?.uid!==user.uid)return;const q=dayQueue(user.uid);if(ok&&JSON.stringify(q[date])===JSON.stringify(p)){delete q[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(q));}if(el("dayDate").value===date)el("dayStatus").textContent=ok?"✓ Offline-Änderungen synchronisiert":"Konflikt – lokaler Tagesentwurf bleibt erhalten. Cloud-Daten nicht überschrieben.";}}catch(e){if(currentUser?.uid===user.uid)el("dayStatus").textContent="Offline-Entwürfe bleiben gespeichert; Abgleich offen.";}finally{daySyncBusy=false;}}
+async function syncDays(){const user=currentUser;if(!user||!navigator.onLine||daySyncBusy||dayBusy)return;daySyncBusy=true;try{for(const [date,p] of Object.entries(dayQueue(user.uid))){if(currentUser?.uid!==user.uid)return;const ok=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);const remote=snap.data()||{};if(Object.keys(p.patch).some(k=>dayValue(remote,k)!==dayValue(p.base,k)&&dayValue(remote,k)!==p.patch[k]))return false;tx.set(ref,p.patch,{merge:true});return {...remote,...p.patch};});if(currentUser?.uid!==user.uid)return;const q=dayQueue(user.uid);if(ok&&JSON.stringify(q[date])===JSON.stringify(p)){updateLocalDocument(user.uid,"test-day-"+date,ok);if(el("dayDate").value===date&&dayLoaded)dayBase={...p.base,...p.patch};delete q[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(q));}if(el("dayDate").value===date)el("dayStatus").textContent=ok?"✓ Offline-Änderungen synchronisiert":"Konflikt – lokaler Tagesentwurf bleibt erhalten. Cloud-Daten nicht überschrieben.";}}catch(e){if(currentUser?.uid===user.uid)el("dayStatus").textContent="Offline-Entwürfe bleiben gespeichert; Abgleich offen.";}finally{daySyncBusy=false;}}
 window.addEventListener("online",syncDays);
 async function loadDay() {
  renderDayHighlights();
@@ -1029,7 +1030,7 @@ renderDayLinks();
 }
 el("dayDate").addEventListener("change", loadDay);
 el("saveDay").addEventListener("click", async () => {
-  if (!currentUser || !dayLoaded || dayBusy || daySyncBusy) return;
+  if(daySyncBusy){el("dayStatus").textContent="Abgleich läuft – bitte danach erneut speichern.";return;}if (!currentUser || !dayLoaded || dayBusy) return;
   const user = currentUser;
   const request = dayRequest;
   const date = el("dayDate").value;
@@ -1043,7 +1044,7 @@ el("saveDay").addEventListener("click", async () => {
   try {
     const queue=dayQueue(user.uid);const base=queue[date]?.base||dayBase;const patch=Object.fromEntries(Object.entries(data).filter(([k,v])=>v!==dayValue(base,k)));if(!navigator.onLine||queue[date]){if(Object.keys(patch).length)queue[date]={base,patch};else delete queue[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(queue));if(request===dayRequest){dayActivities=JSON.parse(data.activityCards);dayMode(false);el("dayStatus").textContent="Lokal gespeichert – Abgleich offen.";}}else{await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);if(Object.keys(patch).some(k=>dayValue(snap.data(),k)!==dayValue(base,k)))throw Error("Datenkonflikt – bitte neu laden");if(Object.keys(patch).length)tx.set(ref,patch,{merge:true});});dayBase={...base,...patch};if(request===dayRequest){dayActivities=JSON.parse(data.activityCards);dayMode(false);el("dayStatus").textContent="✓ In der Cloud gespeichert";}}
   } catch(error) {
-    if (request === dayRequest) el("dayStatus").textContent = "Speichern fehlgeschlagen: "+error.code;
+    if (request === dayRequest) el("dayStatus").textContent = "Speichern fehlgeschlagen: "+(error.message||error.code||"Unbekannter Fehler");
   } finally {
     dayBusy = false;
     if (request === dayRequest && currentUser?.uid === user.uid) {
@@ -1147,7 +1148,7 @@ el("dayEvening").value = "";
 el("dayOptions").value = "";
 renderDayLinks();
 el("dayStatus").textContent = "";
-if(user) loadDay(); else renderDayList();
+if(user) {loadDay().then(()=>syncDays());} else renderDayList();
 el("loginCard").hidden = !!user;
 el("app").hidden = !user;
 if(user)openHomeMap();
@@ -1177,7 +1178,7 @@ el("noteText").value = snapshot.exists()
 topics=Array.isArray(snapshot.data()?.topics)?snapshot.data().topics:[];topicReady=true;renderTopics();legacyLinks();
 el("noteText").disabled = false;
 el("saveNotes").disabled = false;
-el("connectionStatus").textContent = snapshot.metadata?.fromCache?"Offline – gespeicherte Kopie, nur lesen":"✓ Anmeldung und Datenbank verbunden";
+el("connectionStatus").textContent = snapshot.metadata?.fromCache?"Offline – gespeicherte Kopie":"✓ Anmeldung und Datenbank verbunden";
 noteBase=el("noteText").value;const pending=pendingNote(user.uid);if(pending){el("noteText").value=pending.text;el("noteStatus").textContent="Lokaler Entwurf – Synchronisierung ausstehend.";syncPendingNote();}else el("noteStatus").textContent=snapshot.metadata?.fromCache?"Notizen aus Offline-Kopie geladen.":"Notizen aus der Cloud geladen.";
 
 } catch(error) {
