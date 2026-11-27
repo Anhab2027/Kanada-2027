@@ -629,7 +629,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.19.4 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.19.5 · Testversion</footer>
 
 </main>
 
@@ -692,7 +692,7 @@ function checkQueue(uid){try{return JSON.parse(localStorage.getItem(checkQueueKe
 function applyCheckQueue(items,queue){return items.map(x=>{const p=queue.find(y=>y.id===x.id);return p?{...x,Done:p.done}:x;});}
 let checkSyncBusy=false;
 async function toggleCheck(id,done){const user=currentUser;if(!user||!clReady||clBusy||checkSyncBusy)return;try{const queue=checkQueue(user.uid).filter(x=>x.id!==id);queue.push({id,done});localStorage.setItem(checkQueueKey(user.uid),JSON.stringify(queue));checks=applyCheckQueue(checks,queue);renderChecks();el("clStatus").textContent="Lokal gespeichert – Abgleich ausstehend.";if(navigator.onLine)await syncChecks();}catch(e){el("clStatus").textContent="Lokales Speichern fehlgeschlagen.";renderChecks();}}
-async function syncChecks(){const user=currentUser;if(!user||!navigator.onLine||checkSyncBusy||clBusy)return;const queue=checkQueue(user.uid);if(!queue.length)return;checkSyncBusy=true;renderChecks();try{const result=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-checklists");const snap=await tx.get(ref);const items=snap.data()?.items;if(!Array.isArray(items)||queue.some(p=>!items.some(x=>x.id===p.id)))throw Error("Aufgabe fehlt");const next=applyCheckQueue(items,queue);tx.set(ref,{items:next},{merge:true});return next;});if(currentUser?.uid!==user.uid)return;localStorage.removeItem(checkQueueKey(user.uid));checks=result;updateLocalDocument(user.uid,"test-checklists",{items:result});el("clStatus").textContent="✓ Checkliste synchronisiert";}catch(e){if(currentUser?.uid===user.uid)el("clStatus").textContent="Abgleich offen – lokale Häkchen bleiben erhalten.";}finally{checkSyncBusy=false;renderChecks();}}
+async function syncChecks(){const user=currentUser;if(!user||!navigator.onLine||checkSyncBusy||clBusy)return;const queue=checkQueue(user.uid);if(!queue.length)return;checkSyncBusy=true;renderChecks();try{const result=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-checklists");const snap=await tx.get(ref);const items=snap.data()?.items;if(!Array.isArray(items)||queue.some(p=>!items.some(x=>x.id===p.id)))throw Error("Aufgabe fehlt");const next=applyCheckQueue(items,queue);tx.set(ref,{items:next},{merge:true});return next;});if(currentUser?.uid!==user.uid)return;localStorage.removeItem(checkQueueKey(user.uid));checks=result;clReady=true;updateLocalDocument(user.uid,"test-checklists",{items:result});el("clStatus").textContent="✓ Checkliste synchronisiert";}catch(e){if(currentUser?.uid===user.uid)el("clStatus").textContent="Abgleich offen – lokale Häkchen bleiben erhalten.";}finally{checkSyncBusy=false;renderChecks();}}
 window.addEventListener("online",syncChecks);
 window.addEventListener("online",renderChecks);window.addEventListener("offline",renderChecks);
 
