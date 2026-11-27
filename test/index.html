@@ -538,7 +538,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <p class="muted">Reisetage direkt bearbeiten und speichern.</p>
 <div id="dayList" class="day-list" aria-label="Reisetage"></div>
 <label for="dayDate">Datum</label>
-<input id="dayDate" type="date" min="2027-07-17" value="2027-07-18" disabled>
+<input id="dayDate" type="date" min="2027-07-17" max="2027-08-09" value="2027-07-18" disabled>
 <div id="dayRoute"></div><div id="dayHighlights"></div><div id="dayBookings"></div><div id="dayStay" class="muted" aria-live="polite"></div>
 <label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
@@ -555,7 +555,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayPlan">Weitere Tagesnotizen (bisherige Planung)</label>
 <textarea id="dayPlan" maxlength="10000" disabled></textarea><div class="day-links" id="dayPlanLinks"></div>
 <button id="saveDay" disabled>Reisetag speichern</button>
-<p id="dayStatus" class="muted" role="status"></p>
+<p id="dayStatus" class="muted" role="status"></p><button type="button" class="link" id="dayImportOpen">Tagesplanung aus Datei importieren</button><div id="dayImportPanel" class="card" hidden><h3>Importvorschau</h3><input id="dayImportFile" type="file" accept=".json,application/json"><p id="dayImportInfo" role="status"></p><div id="dayImportRows"></div><div class="form-actions"><button type="button" id="dayImportApply" disabled>Ausgewählte Tage importieren</button><button type="button" id="dayImportClose">Schließen</button></div></div>
 </div>
 <button class="link" data-go="overview">← Zurück zur Übersicht</button>
 </section>
@@ -636,7 +636,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.6.1 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.6.2 · Testversion</footer>
 
 </main>
 
@@ -655,7 +655,8 @@ import {
 getFirestore,
 doc,
 getDoc,
-setDoc
+setDoc,
+runTransaction
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -892,7 +893,7 @@ const dayList = el("dayList");
 function renderDayList(){
   dayList.replaceChildren();
   const format = new Intl.DateTimeFormat("de-DE",{weekday:"short",day:"2-digit",month:"2-digit",timeZone:"UTC"});
-  for(let d=new Date(Date.UTC(2027,6,17));d<=new Date(Date.UTC(2027,7,8));d.setUTCDate(d.getUTCDate()+1)){
+  for(let d=new Date(Date.UTC(2027,6,17));d<=new Date(Date.UTC(2027,7,9));d.setUTCDate(d.getUTCDate()+1)){
     const date=d.toISOString().slice(0,10);
     const b=document.createElement("button");
     b.type="button";b.dataset.date=date;
@@ -988,6 +989,17 @@ el("saveDay").addEventListener("click", async () => {
   }
 });
 
+
+const diFields=["title","morning","noon","afternoon","evening","options","plan"];
+let diEpoch=0,diRows=[],diBusy=false;
+function diReset(){diEpoch++;diRows=[];el("dayImportPanel").hidden=true;el("dayImportFile").value="";el("dayImportRows").replaceChildren();el("dayImportInfo").textContent="";el("dayImportApply").disabled=true;}
+function diPatch(item,old){return Object.fromEntries(diFields.filter(k=>item[k]&&(!Object.hasOwn(old,k)||old[k]===""||old[k]===null)).map(k=>[k,item[k]]));}
+el("dayImportOpen").onclick=()=>{if(!currentUser||dayBusy||diBusy)return;diReset();el("dayImportPanel").hidden=false;};
+el("dayImportClose").onclick=()=>{if(!diBusy)diReset();};
+el("dayImportFile").onchange=async()=>{if(!currentUser||diBusy)return;const user=currentUser,epoch=++diEpoch,file=el("dayImportFile").files[0];diRows=[];el("dayImportRows").replaceChildren();el("dayImportApply").disabled=true;if(!file)return;try{if(file.size>3000000)throw Error("Datei zu groß");const data=JSON.parse(await file.text());if(!Array.isArray(data.items)||!data.items.length||data.items.length>24)throw Error("Ungültige Tagesliste");const dates=new Set();for(const x of data.items){if(!x||typeof x.date!=="string"||!/^2027-(07-(1[7-9]|2[0-9]|3[01])|08-0[1-9])$/.test(x.date)||dates.has(x.date))throw Error("Ungültiges oder doppeltes Datum");dates.add(x.date);for(const k of diFields)if(x[k]!==undefined&&(typeof x[k]!=="string"||x[k].length>(k==="title"?160:10000)))throw Error("Ungültiges Feld: "+k);}
+const loaded=await Promise.all(data.items.map(async item=>({item,old:(await getDoc(doc(db,"users",user.uid,"travel","test-day-"+item.date))).data()||{}})));if(epoch!==diEpoch||currentUser?.uid!==user.uid)return;diRows=loaded.sort((a,b)=>a.item.date.localeCompare(b.item.date));for(const [i,{item,old}] of diRows.entries()){const patch=diPatch(item,old),row=document.createElement("div");row.className="booking-item";const label=document.createElement("label"),cb=document.createElement("input");cb.type="checkbox";cb.style.width="auto";cb.dataset.index=String(i);cb.checked=Object.keys(patch).length>0;cb.disabled=!cb.checked;label.append(cb,document.createTextNode(" "+item.date.split("-").reverse().join(".")+" · "+(item.title||"Tagesplanung")));row.append(label);for(const k of diFields){if(!item[k])continue;const p=document.createElement("p");p.style.whiteSpace="pre-wrap";p.textContent=k+": "+item[k]+(Object.hasOwn(patch,k)?"":" (vorhandener Inhalt bleibt erhalten)");row.append(p);}el("dayImportRows").append(row);}el("dayImportInfo").textContent="Nur leere Felder werden ergänzt. Vorhandene Inhalte bleiben erhalten.";el("dayImportApply").disabled=false;}catch(e){if(epoch===diEpoch)el("dayImportInfo").textContent="Vorschau fehlgeschlagen: "+e.message;}};
+el("dayImportApply").onclick=async()=>{if(!currentUser||dayBusy||diBusy)return;const user=currentUser,epoch=diEpoch,selected=[...el("dayImportRows").querySelectorAll("input:checked:not(:disabled)")].map(c=>diRows[Number(c.dataset.index)]).filter(Boolean);if(!selected.length)return;if(!confirm("Ausgewählte Tage importieren? Vorhandene Inhalte bleiben erhalten. Nicht gespeicherte Änderungen im Tagesformular gehen beim Neuladen verloren."))return;diBusy=true;dayBusy=true;el("dayDate").disabled=true;dayControls(false);renderDayList();el("dayImportApply").disabled=true;el("dayImportFile").disabled=true;let count=0;try{for(const {item} of selected){if(epoch!==diEpoch||currentUser?.uid!==user.uid)break;const ref=doc(db,"users",user.uid,"travel","test-day-"+item.date);const changed=await runTransaction(db,async tx=>{const snap=await tx.get(ref);const patch=diPatch(item,snap.data()||{});if(!Object.keys(patch).length)return false;tx.set(ref,patch,{merge:true});return true;});if(changed)count++;}if(epoch===diEpoch)el("dayImportInfo").textContent=count+" Tage ergänzt. Vorhandene Inhalte geschützt.";}catch(e){if(epoch===diEpoch)el("dayImportInfo").textContent="Import unterbrochen: "+count+" Tage ergänzt. Erneuter Import möglich. "+e.message;}finally{diBusy=false;dayBusy=false;el("dayImportFile").disabled=false;el("dayImportApply").disabled=true;if(currentUser){el("dayDate").disabled=false;loadDay();}}};
+
 let wxEpoch=0,wxController=null;
 const wxPlaces=[["Vancouver",49.2827,-123.1207],["Victoria",48.4284,-123.3656],["Goldstream",48.477,-123.551],["Tofino",49.153,-125.906],["Ucluelet",48.942,-125.546],["Nanaimo",49.1659,-123.9401],["Parksville",49.319,-124.313],["Englishman River Falls",49.248,-124.351],["Stamp River",49.33,-124.91],["Port Alberni",49.233,-124.805],["Squamish",49.7016,-123.1558],["Whistler",50.1163,-122.9574],["Juan de Fuca",48.44,-124.06],["Sooke",48.374,-123.735],["Delta",49.0847,-123.058],["Frankfurt",50.1109,8.6821],["Troisdorf",50.815,-7.155]];
 function wxMatch(v){return wxPlaces.find(x=>x[0].toLowerCase()===v.trim().toLowerCase())||wxPlaces.find(x=>v.toLowerCase().includes(x[0].toLowerCase()));}
@@ -1046,6 +1058,7 @@ el("loginButton").disabled = false;
 onAuthStateChanged(auth, async user => {
 
 currentUser = user;
+diReset();
 loadChecks(user);
 loadHighlights(user);
 loadRoutes(user);
