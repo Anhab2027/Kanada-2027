@@ -555,7 +555,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayPlan">Weitere Tagesnotizen (bisherige Planung)</label>
 <textarea id="dayPlan" maxlength="10000" disabled></textarea><div class="day-links" id="dayPlanLinks"></div>
 <div class="form-actions"><button id="saveDay" disabled>Reisetag speichern</button><button id="dayCancel" type="button">Abbrechen</button></div></div>
-<p id="dayStatus" class="muted" role="status"></p><button type="button" class="link" id="dayImportOpen">Tagesplanung aus Datei importieren</button><div id="dayImportPanel" class="card" hidden><h3>Importvorschau</h3><input id="dayImportFile" type="file" accept=".json,application/json"><p id="dayImportInfo" role="status"></p><div id="dayImportRows"></div><div class="form-actions"><button type="button" id="dayImportApply" disabled>Ausgewählte Felder importieren</button><button type="button" id="dayImportClose">Schließen</button></div></div>
+<p id="dayStatus" class="muted" role="status"></p><button type="button" class="link" id="dayImportOpen">Tagesplanung aus Datei importieren</button><div id="dayImportPanel" class="card" hidden><h3>Importvorschau</h3><input id="dayImportFile" type="file" accept=".json,application/json"><p id="dayImportInfo" role="status"></p><button type="button" id="dayImportSelectAll">Alle Änderungen auswählen</button><div id="dayImportRows"></div><div class="form-actions"><button type="button" id="dayImportApply" disabled>Ausgewählte Felder importieren</button><button type="button" id="dayImportClose">Schließen</button></div></div>
 </div>
 <button class="link" data-go="overview">← Zurück zur Übersicht</button>
 </section>
@@ -636,7 +636,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.6.6 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.6.7 · Testversion</footer>
 
 </main>
 
@@ -1015,6 +1015,7 @@ const diFields=["title","morning","noon","afternoon","evening","options","plan"]
 let diEpoch=0,diRows=[],diBusy=false;
 function diReset(){diEpoch++;diRows=[];el("dayImportPanel").hidden=true;el("dayImportFile").value="";el("dayImportRows").replaceChildren();el("dayImportInfo").textContent="";el("dayImportApply").disabled=true;}
 function diPatch(item,old,keys,preview){return Object.fromEntries(keys.filter(k=>diFields.includes(k)&&typeof item[k]==="string"&&item[k].trim()&&item[k]!==old[k]&&(old[k]??"")===(preview[k]??"")).map(k=>[k,item[k]]));}
+el("dayImportSelectAll").onclick=()=>{if(diBusy)return;for(const c of el("dayImportRows").querySelectorAll("input[type=checkbox]:not(:disabled)"))c.checked=true;};
 el("dayImportOpen").onclick=()=>{if(!currentUser||dayBusy||diBusy)return;diReset();el("dayImportPanel").hidden=false;};
 el("dayImportClose").onclick=()=>{if(!diBusy)diReset();};
 el("dayImportFile").onchange=async()=>{if(!currentUser||diBusy)return;const user=currentUser,epoch=++diEpoch,file=el("dayImportFile").files[0];diRows=[];el("dayImportRows").replaceChildren();el("dayImportApply").disabled=true;if(!file)return;try{if(file.size>3000000)throw Error("Datei zu groß");const data=JSON.parse(await file.text());if(!Array.isArray(data.items)||!data.items.length||data.items.length>24)throw Error("Ungültige Tagesliste");const dates=new Set();for(const x of data.items){if(!x||typeof x.date!=="string"||!/^2027-(07-(1[7-9]|2[0-9]|3[01])|08-0[1-9])$/.test(x.date)||dates.has(x.date))throw Error("Ungültiges oder doppeltes Datum");dates.add(x.date);for(const k of diFields)if(x[k]!==undefined&&(typeof x[k]!=="string"||x[k].length>(k==="title"?160:10000)))throw Error("Ungültiges Feld: "+k);}
