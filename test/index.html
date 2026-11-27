@@ -540,7 +540,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayDate">Datum</label>
 <input id="dayDate" type="date" min="2027-07-17" max="2027-08-09" value="2027-07-18" disabled>
 
-<div id="dayRead" aria-live="polite"></div><details class="day-meta"><summary>🎟️ Buchungen und Reisedetails</summary><div id="dayBookings"></div><div id="dayRoute"></div><div id="dayHighlights"></div></details><details class="day-meta"><summary>🛏️ Unterkunft und Check-in / Check-out</summary><div id="dayStay" class="muted" aria-live="polite"></div></details><button id="dayEdit" type="button" disabled>Tagesplanung bearbeiten</button><div id="dayEditor" hidden><label for="dayTitle">Ort / Etappe</label>
+<div id="dayRead" aria-live="polite"></div><details class="day-meta"><summary>🎟️ Buchungen und Reisedetails</summary><div id="dayBookings"></div><div id="dayRoute"></div><div id="dayHighlights"></div></details><details class="day-meta"><summary>🛏️ Unterkunft und Check-in / Check-out</summary><div id="dayStay" class="muted" aria-live="polite"></div></details><button id="dayEdit" type="button" disabled>Tagesplanung bearbeiten</button><div id="dayEditor" hidden><div id="dayCardsEditor" hidden><label for="dayCardsText">Aktivitätskarten bearbeiten (JSON)</label><textarea id="dayCardsText" rows="12"></textarea><p class="muted">Die Karten werden in der eingegebenen Reihenfolge angezeigt. Leere Liste [] stellt die bisherige Tagesansicht wieder her.</p></div><label for="dayTitle">Ort / Etappe</label>
 <input id="dayTitle" maxlength="160" disabled>
 <label for="dayMorning">Morgens</label>
 <textarea id="dayMorning" maxlength="10000" disabled></textarea><div class="day-links" id="dayMorningLinks"></div>
@@ -636,7 +636,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.8.0 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.8.1 · Testversion</footer>
 
 </main>
 
@@ -953,7 +953,7 @@ const active=stays.filter(x=>x.In<=date&&date<=x.Out);for(const st of active){co
 let group=null,last="";for(const e of entries){const special=e.booking||e.stay;const label=special?(e.booking?(/flug|condor/i.test(e.booking.Name)?"✈️ "+e.booking.Name:/fähre/i.test(e.booking.Name)?"⛴️ "+e.booking.Name:"🎟️ "+e.booking.Name):"🛏️ "+e.stay.Name):e.label;if(!group||last!==label||special){group=document.createElement("div");group.className="day-activity-card"+(special?" day-special":"");const h=document.createElement("h4");h.textContent=label;group.append(h);timeline.append(group);last=label;}const flight=e.booking&&/DE245[45]/i.test(e.booking.Name);if(flight){const outbound=/DE2454/i.test(e.booking.Name);const f=document.createElement("div");f.className="day-flight";for(const [time,place] of [[e.booking.Time||e.time,outbound?"Frankfurt":"Vancouver"],[outbound?"15:45":"12:40",outbound?"Vancouver":"Frankfurt (+1 Tag)"]]){const cell=document.createElement("div");const strong=document.createElement("strong");strong.textContent=time;const p=document.createElement("p");p.textContent=place;cell.append(strong,p);f.append(cell);}group.append(f);const note=document.createElement("small");note.textContent="Geplante Flugzeiten · jeweilige Ortszeit";group.append(note);}const item=document.createElement("div");item.className="day-activity-line";if(e.time&&!flight){const time=document.createElement("strong");time.className="day-activity-time";time.textContent=e.time+" Uhr";item.append(time);}const p=document.createElement("p");p.textContent=flight?"Premium Economy":e.text;item.append(p);noteLinks(item,e.raw);group.append(item);if(special){const status=document.createElement("small");status.className="day-booked";status.textContent=e.booking?"✓ Bestätigt":e.stay.State||"";group.append(status);const address=e.stay?.Address||e.booking?.Meeting;if(address){const details=document.createElement("details");const summary=document.createElement("summary");summary.textContent="Adresse und Navigation";details.append(summary);const p=document.createElement("p");p.textContent=address;details.append(p);const a=document.createElement("a");a.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(address);a.target="_blank";a.rel="noopener noreferrer";a.textContent="Navigation";details.append(a);group.append(details);}if(e.stay?.In===date&&e.stay.InTime){const p=document.createElement("small");p.textContent="Check-in möglich ab "+e.stay.InTime+" Uhr";group.append(p);}last="";}}
 box.append(timeline);for(const [key,label] of dayReadFields.filter(([k])=>k==="Options"||k==="Plan")){const value=el("day"+key).value;if(!value.trim())continue;const card=document.createElement("details");card.className="day-read-card";const h=document.createElement("summary");h.textContent=label;card.append(h);dayReadText(card,value,key);box.append(card);}
 }
-function dayMode(edit){dayEditing=edit;el("dayEditor").hidden=!edit;el("dayRead").hidden=edit;el("dayEdit").hidden=edit;el("dayImportOpen").hidden=edit;if(edit){for(const k of dayLinkFields){const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";}}else renderDayRead();}
+function dayMode(edit){dayEditing=edit;el("dayCardsEditor").hidden=!edit; if(edit)el("dayCardsText").value=JSON.stringify(dayActivities,null,2);el("dayEditor").hidden=!edit;el("dayRead").hidden=edit;el("dayEdit").hidden=edit;el("dayImportOpen").hidden=edit;if(edit){for(const k of dayLinkFields){const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";}}else renderDayRead();}
 el("dayEdit").onclick=()=>{if(dayLoaded&&!dayBusy)dayMode(true);};
 el("dayCancel").onclick=()=>{if(!dayBusy&&confirm("Änderungen verwerfen?"))loadDay();};
 for(const k of dayLinkFields)el("day"+k).addEventListener("input",()=>{const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";});
@@ -1008,6 +1008,7 @@ el("saveDay").addEventListener("click", async () => {
   const request = dayRequest;
   const date = el("dayDate").value;
   const data = {title:el("dayTitle").value,plan:el("dayPlan").value,morning:el("dayMorning").value,noon:el("dayNoon").value,afternoon:el("dayAfternoon").value,evening:el("dayEvening").value,options:el("dayOptions").value};
+  let editedCards;try{editedCards=JSON.parse(el("dayCardsText").value||"[]");if(!Array.isArray(editedCards)||editedCards.length>30||editedCards.some(x=>!x||typeof x.title!=="string"))throw Error("Ungültige Karten");data.activityCards=JSON.stringify(editedCards);if(data.activityCards.length>50000)throw Error("Karten zu groß");}catch(e){el("dayStatus").textContent="Aktivitätskarten prüfen: "+e.message;return;}
   dayBusy = true;
   el("dayDate").disabled = true;
   renderDayList();
@@ -1015,7 +1016,7 @@ el("saveDay").addEventListener("click", async () => {
   el("dayStatus").textContent = "Speichern läuft …";
   try {
     await setDoc(doc(db,"users",user.uid,"travel","test-day-"+date),data,{merge:true});
-    if (request === dayRequest) {dayMode(false);el("dayStatus").textContent = "✓ In der Cloud gespeichert";}
+    if (request === dayRequest) {dayActivities=editedCards;dayMode(false);el("dayStatus").textContent = "✓ In der Cloud gespeichert";}
   } catch(error) {
     if (request === dayRequest) el("dayStatus").textContent = "Speichern fehlgeschlagen: "+error.code;
   } finally {
