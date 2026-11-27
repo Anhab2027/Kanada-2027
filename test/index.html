@@ -547,7 +547,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <label for="dayPlan">Weitere Tagesnotizen (bisherige Planung)</label>
 <textarea id="dayPlan" maxlength="10000" disabled></textarea><div class="day-links" id="dayPlanLinks"></div>
 <div class="form-actions"><button id="saveDay" disabled>Reisetag speichern</button><button id="dayCancel" type="button">Abbrechen</button></div></div>
-<p id="dayStatus" class="muted" role="status"></p><button type="button" class="link" id="dayImportOpen">Tagesplanung aus Datei importieren</button><div id="dayImportPanel" class="card" hidden><h3>Importvorschau</h3><input id="dayImportFile" type="file" accept=".json,application/json"><p id="dayImportInfo" role="status"></p><button type="button" id="dayImportSelectAll">Alle Änderungen auswählen</button><div id="dayImportRows"></div><div class="form-actions"><button type="button" id="dayImportApply" disabled>Ausgewählte Felder importieren</button><button type="button" id="dayImportClose">Schließen</button></div></div>
+<p id="dayStatus" class="muted" role="status"></p><button type="button" class="link" id="dayRetry" hidden>Offene Änderungen erneut abgleichen</button><button type="button" class="link" id="dayImportOpen">Tagesplanung aus Datei importieren</button><div id="dayImportPanel" class="card" hidden><h3>Importvorschau</h3><input id="dayImportFile" type="file" accept=".json,application/json"><p id="dayImportInfo" role="status"></p><button type="button" id="dayImportSelectAll">Alle Änderungen auswählen</button><div id="dayImportRows"></div><div class="form-actions"><button type="button" id="dayImportApply" disabled>Ausgewählte Felder importieren</button><button type="button" id="dayImportClose">Schließen</button></div></div>
 </div>
 <button class="link" data-go="overview">← Zurück zur Übersicht</button>
 </section>
@@ -629,7 +629,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.19.5 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.19.6 · Testversion</footer>
 
 </main>
 
@@ -981,9 +981,11 @@ for(const k of dayLinkFields)el("day"+k).addEventListener("input",()=>{const a=e
 let dayBase={},daySyncBusy=false;
 const dayQueueKey=uid=>"kanada-test-day-queue:"+uid;
 function dayQueue(uid){try{return JSON.parse(localStorage.getItem(dayQueueKey(uid))||"{}");}catch(e){return {};}}
+function updateDayRetry(){el("dayRetry").hidden=!(currentUser&&navigator.onLine&&Object.keys(dayQueue(currentUser.uid)).length);}
+el("dayRetry").onclick=()=>syncDays();
 function dayValue(v,k){return v?.[k]??(k==="activityCards"?"[]":"");}
-async function syncDays(){const user=currentUser;if(!user||!navigator.onLine||daySyncBusy||dayBusy)return;daySyncBusy=true;try{for(const [date,p] of Object.entries(dayQueue(user.uid))){if(currentUser?.uid!==user.uid)return;const ok=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);const remote=snap.data()||{};if(Object.keys(p.patch).some(k=>dayValue(remote,k)!==dayValue(p.base,k)&&dayValue(remote,k)!==p.patch[k]))return false;tx.set(ref,p.patch,{merge:true});return {...remote,...p.patch};});if(currentUser?.uid!==user.uid)return;const q=dayQueue(user.uid);if(ok&&JSON.stringify(q[date])===JSON.stringify(p)){updateLocalDocument(user.uid,"test-day-"+date,ok);if(el("dayDate").value===date&&dayLoaded)dayBase={...p.base,...p.patch};delete q[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(q));}if(el("dayDate").value===date)el("dayStatus").textContent=ok?"✓ Offline-Änderungen synchronisiert":"Konflikt – lokaler Tagesentwurf bleibt erhalten. Cloud-Daten nicht überschrieben.";}}catch(e){if(currentUser?.uid===user.uid)el("dayStatus").textContent="Offline-Entwürfe bleiben gespeichert; Abgleich offen.";}finally{daySyncBusy=false;}}
-window.addEventListener("online",syncDays);
+async function syncDays(){const user=currentUser;if(!user||!navigator.onLine||daySyncBusy||dayBusy)return;daySyncBusy=true;try{for(const [date,p] of Object.entries(dayQueue(user.uid))){if(currentUser?.uid!==user.uid)return;const ok=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);const remote=snap.data()||{};if(Object.keys(p.patch).some(k=>dayValue(remote,k)!==dayValue(p.base,k)&&dayValue(remote,k)!==p.patch[k]))return false;tx.set(ref,p.patch,{merge:true});return {...remote,...p.patch};});if(currentUser?.uid!==user.uid)return;const q=dayQueue(user.uid);if(ok&&JSON.stringify(q[date])===JSON.stringify(p)){updateLocalDocument(user.uid,"test-day-"+date,ok);if(el("dayDate").value===date&&dayLoaded)dayBase={...p.base,...p.patch};delete q[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(q));}if(el("dayDate").value===date)el("dayStatus").textContent=ok?"✓ Offline-Änderungen synchronisiert":"Konflikt – lokaler Tagesentwurf bleibt erhalten. Cloud-Daten nicht überschrieben.";}}catch(e){if(currentUser?.uid===user.uid)el("dayStatus").textContent="Offline-Entwürfe bleiben gespeichert; Abgleich offen.";}finally{daySyncBusy=false;updateDayRetry();}}
+window.addEventListener("online",syncDays);window.addEventListener("offline",updateDayRetry);
 async function loadDay() {
  renderDayHighlights();
  renderDayRoute();
@@ -1125,7 +1127,7 @@ el("loginButton").disabled = false;
 
 onAuthStateChanged(auth, async user => {
 
-currentUser = user;
+currentUser = user;updateDayRetry();
 noteConflictBase=null;el("noteConflict").hidden=true;el("noteRemote").value="";
 updateOfflineStatus();scheduleOffline();
 diReset();
