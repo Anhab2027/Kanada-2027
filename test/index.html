@@ -413,6 +413,9 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 .panorama-header{background-image:linear-gradient(90deg,#A70D26 19%,#C8102E 19%,#C8102E 81%,#A70D26 81%);padding:calc(16px + env(safe-area-inset-top)) 12px 20px}.panorama-content{text-shadow:none}.panorama-emblem{opacity:.13}.panorama-title-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:12px auto 10px}.panorama-title-row span{display:flex;justify-content:center}.panorama-title-row svg{width:clamp(23px,6.8vw,40px);height:auto}.panorama-header h1{font-family:Inter,Arial,sans-serif;font-style:normal;font-weight:700;font-size:clamp(26px,8.5vw,48px);letter-spacing:-.7px;margin:0;white-space:nowrap}.panorama-subtitle{font-family:Inter,Arial,sans-serif;font-style:normal;font-size:clamp(12px,3.5vw,20px);margin:8px 0 0}.panorama-eyebrow{letter-spacing:3.5px;font-size:11px}
 
 .countdown-card .amount{font-family:Inter,Arial,sans-serif;font-style:normal;font-weight:700;letter-spacing:0;font-variant-numeric:tabular-nums}
+
+/* v1.20.26: compact home layout, route remains above tiles */
+.panorama-header{padding:calc(10px + env(safe-area-inset-top)) 12px 12px}.panorama-title-row{margin:8px auto 6px}.panorama-subtitle{margin:5px 0 0}.destination-strip{padding:7px 12px}#overview h2{font-family:Inter,Arial,sans-serif;font-style:normal;font-weight:700}#overview .countdown-card{padding:8px 14px}#overview .countdown-card .amount{line-height:1.15}#overview .card,#overview .dashboard-tile{box-shadow:0 3px 10px rgba(37,70,87,.09)}
 </style>
 <style>#tripMap{height:360px;max-height:55vh;border-radius:12px;z-index:0}.trip-pin{background:#C8102E;color:white;border:2px solid white;border-radius:50%;text-align:center;line-height:18px;font-size:11px;font-weight:700}#tripMapPanel{margin:12px 0}#tripMap .leaflet-control a{margin:0}</style><style>#tripMapPanel.trip-expanded{position:fixed;inset:0;z-index:10000;background:#F1F7FA;margin:0;padding:12px;overflow:auto}#tripMapPanel.trip-expanded #tripMap{height:75vh;max-height:none} .trip-pin.trip-transfer{background:#254657}#tripMap .leaflet-popup-content p{margin:6px 0;font-size:13px}#tripMap .leaflet-popup-content button{font-size:13px;padding:8px;min-height:44px;margin:4px 0;width:100%}#tripMap .leaflet-popup-content strong{color:#254657}</style><style>.trip-legs{border-top:1px solid #BDD3E2;margin-top:8px;padding-top:5px}#tripMap .leaflet-popup-content button{background:#E2EDF4;color:#254657;border:1px solid #BDD3E2}#tripMap .leaflet-popup-content{max-width:230px}</style><style>.backup-card>button{display:block;width:100%;margin:10px 0;text-align:center}.backup-card details{margin-top:16px}.backup-card details button{margin:8px 0}#offlineState{font-size:13px;text-align:center;margin:16px 0}</style><style>.cl-item{padding:10px 12px!important;margin:6px 0!important}.cl-compact-top{display:flex;align-items:center;gap:8px}.cl-compact-top .cl-task{flex:1;min-width:0;margin:0!important}.cl-expand-task{flex:0 0 42px!important;width:42px!important;min-height:44px;background:transparent!important;color:#254657!important;border:0!important;padding:4px!important;font-size:20px!important}.cl-compact-detail{padding-top:8px}.cl-compact-detail[hidden]{display:none!important}.cl-compact-detail p{margin:4px 0 10px}</style></head>
 <body><div style="background:#854d0e;color:white;text-align:center;padding:10px;font:600 14px system-ui">TESTVERSION – separate Testdaten</div>
@@ -642,7 +645,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.20.25 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.20.26 · Testversion</footer>
 
 </main>
 
