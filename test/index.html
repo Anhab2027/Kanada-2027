@@ -625,7 +625,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.20.1 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.20.2 · Testversion</footer>
 
 </main>
 
@@ -843,15 +843,16 @@ function renderStays(){refreshTripMap();
  const p=document.createElement("p");const nights=Math.round((Date.parse(item.Out)-Date.parse(item.In))/86400000);
  p.textContent=item.In.split("-").reverse().join(".")+" – "+item.Out.split("-").reverse().join(".")+" · "+nights+(nights===1?" Nacht":" Nächte");div.append(p);
  const status=document.createElement("span");status.textContent=item.State;status.style.color=item.State==="Gebucht"?"#166534":item.State==="Noch zu buchen"?"#B45309":"#254657";status.style.fontWeight="600";div.append(status);
- for(const [label,value] of [["Stellplatz / Zimmer",item.Room],["Adresse",item.Address],["Stellplatzwünsche",item.Preference],["Ausstattung",item.Amenities],["Anfahrt",item.Directions],["Hinweise",item.Note]])if(value){const line=document.createElement("div");line.style.whiteSpace="pre-wrap";line.style.overflowWrap="anywhere";line.textContent=label+": "+value;div.append(line);}
+ const details=document.createElement("details");const summary=document.createElement("summary");summary.textContent="Weitere Details";details.append(summary);const campground=/campground|rv park|rv resort|rv haven|riverside|klahanie|country maples|living forest|surf grove|goldstream|stamp river|englishman|sandcut/i.test(item.Name);if(campground&&item.Room){const room=document.createElement("div");room.textContent=item.Room;div.append(room);}if(campground&&item.Amenities){const hookup=item.Amenities.match(/(?:no|keine) hookups?|full[ -]?hookups?|(?:power|strom)\s*(?:[&+/]|und|and)\s*(?:water|wasser)/i);if(hookup){const line=document.createElement("div");line.textContent=hookup[0];div.append(line);}}
+ for(const [label,value] of [["Stellplatz / Zimmer",item.Room],["Adresse",item.Address],["Stellplatzwünsche",item.Preference],["Ausstattung",item.Amenities],["Anfahrt",item.Directions],["Hinweise",item.Note]])if(value){const line=document.createElement("div");line.style.whiteSpace="pre-wrap";line.style.overflowWrap="anywhere";line.textContent=label+": "+value;details.append(line);}
  const times=document.createElement("div");times.textContent=[item.InTime&&"Check-in "+item.InTime,item.OutTime&&"Check-out "+item.OutTime].filter(Boolean).join(" · ");div.append(times);
- function link(label,url){const a=document.createElement("a");a.textContent=label;a.href=url;a.target="_blank";a.rel="noopener noreferrer";div.append(a);}
- if(item.Address)link("Navigation","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address));
+ div.append(details);function link(label,url){const a=document.createElement("a");a.textContent=label;a.href=url;a.target="_blank";a.rel="noopener noreferrer";(label==="Navigation öffnen"?div:details).append(a);}
+ if(item.Address)link("Navigation öffnen","https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(item.Address));
  if(/^https?:\/\//i.test(item.Link||""))link("Buchungslink",item.Link);
  if(/^https?:\/\//i.test(item.Website||""))link("Homepage",item.Website);
  if(item.Phone){const number=item.Phone.replace(/[^+0-9]/g,"");if(/^\+?\d{3,20}$/.test(number))link("Telefon: "+item.Phone,"tel:"+number);}
  if(item.Email&&/^[^\s@?&#]+@[^\s@?&#]+\.[^\s@?&#]+$/.test(item.Email))link("E-Mail: "+item.Email,"mailto:"+item.Email);
- const b=document.createElement("button");b.type="button";b.className="item-edit";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{el("stayForm").hidden=false;el("stayAdd").hidden=true;stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};const actions=document.createElement("div");actions.className="item-actions";actions.append(b);div.append(actions);
+ const b=document.createElement("button");b.type="button";b.className="item-edit";b.textContent="Bearbeiten";b.disabled=stayBusy||!stayReady;b.onclick=()=>{el("stayForm").hidden=false;el("stayAdd").hidden=true;stayEdit=item.id;for(const k of stayFields)el("stay"+k).value=item[k]||"";el("stayHeading").textContent="Unterkunft bearbeiten";el("stayHeading").scrollIntoView({block:"start"});};const actions=document.createElement("div");actions.className="item-actions";actions.append(b);details.append(actions);
  const del=document.createElement("button");del.type="button";del.className="item-delete";del.textContent="Löschen";del.disabled=stayBusy||!stayReady;del.onclick=async()=>{
  if(!currentUser||stayBusy||!stayReady||!confirm("Unterkunft „"+item.Name+"“ wirklich löschen?"))return;
  const user=currentUser,epoch=stayEpoch,next=stays.filter(x=>x.id!==item.id);
