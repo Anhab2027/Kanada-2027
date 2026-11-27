@@ -640,7 +640,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.18.0 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.19.0 · Testversion</footer>
 
 </main>
 
@@ -988,6 +988,12 @@ function dayMode(edit){dayEditing=edit;el("dayCardsEditor").hidden=!edit; if(edi
 el("dayEdit").onclick=()=>{if(dayLoaded&&!dayBusy)dayMode(true);};
 el("dayCancel").onclick=()=>{if(!dayBusy&&confirm("Änderungen verwerfen?"))loadDay();};
 for(const k of dayLinkFields)el("day"+k).addEventListener("input",()=>{const a=el("day"+k);a.style.height="auto";a.style.height=Math.max(110,a.scrollHeight+4)+"px";});
+let dayBase={},daySyncBusy=false;
+const dayQueueKey=uid=>"kanada-test-day-queue:"+uid;
+function dayQueue(uid){try{return JSON.parse(localStorage.getItem(dayQueueKey(uid))||"{}");}catch(e){return {};}}
+function dayValue(v,k){return v?.[k]??(k==="activityCards"?"[]":"");}
+async function syncDays(){const user=currentUser;if(!user||!navigator.onLine||daySyncBusy||dayBusy)return;daySyncBusy=true;try{for(const [date,p] of Object.entries(dayQueue(user.uid))){if(currentUser?.uid!==user.uid)return;const ok=await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);const remote=snap.data()||{};if(Object.keys(p.patch).some(k=>dayValue(remote,k)!==dayValue(p.base,k)&&dayValue(remote,k)!==p.patch[k]))return false;tx.set(ref,p.patch,{merge:true});return true;});if(currentUser?.uid!==user.uid)return;const q=dayQueue(user.uid);if(ok&&JSON.stringify(q[date])===JSON.stringify(p)){delete q[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(q));}if(el("dayDate").value===date)el("dayStatus").textContent=ok?"✓ Offline-Änderungen synchronisiert":"Konflikt – lokaler Tagesentwurf bleibt erhalten. Cloud-Daten nicht überschrieben.";}}catch(e){if(currentUser?.uid===user.uid)el("dayStatus").textContent="Offline-Entwürfe bleiben gespeichert; Abgleich offen.";}finally{daySyncBusy=false;}}
+window.addEventListener("online",syncDays);
 async function loadDay() {
  renderDayHighlights();
  renderDayRoute();
@@ -1014,7 +1020,7 @@ renderDayLinks();
   try {
     const snap = await getDoc(doc(db,"users",user.uid,"travel","test-day-"+date));
     if (request !== dayRequest || currentUser?.uid !== user.uid) return;
-    const data = snap.data() || {};
+    const remote = snap.data() || {};const pending=dayQueue(user.uid)[date];dayBase=pending?.base||remote;const data={...remote,...pending?.patch};
     dayActivities=[];try{const a=JSON.parse(data.activityCards||"[]");if(validActivityCards(a))dayActivities=a;}catch{}
     el("dayTitle").value = data.title || "";
     el("dayPlan").value = data.plan || "";
@@ -1027,14 +1033,14 @@ renderDayLinks();
     dayLoaded = true;
     dayMode(false);
     dayControls(true);
-    el("dayStatus").textContent = snap.exists() ? "Reisetag geladen." : "Noch keine Planung vorhanden.";
+    el("dayStatus").textContent = pending?"Lokaler Tagesentwurf – Abgleich offen.":snap.exists() ? "Reisetag geladen." : "Noch keine Planung vorhanden.";if(pending)syncDays();
   } catch(error) {
     if (request === dayRequest) el("dayStatus").textContent = "Laden fehlgeschlagen: "+error.code;
   }
 }
 el("dayDate").addEventListener("change", loadDay);
 el("saveDay").addEventListener("click", async () => {
-  if (!currentUser || !dayLoaded || dayBusy) return;
+  if (!currentUser || !dayLoaded || dayBusy || daySyncBusy) return;
   const user = currentUser;
   const request = dayRequest;
   const date = el("dayDate").value;
@@ -1046,8 +1052,7 @@ el("saveDay").addEventListener("click", async () => {
   dayControls(false);
   el("dayStatus").textContent = "Speichern läuft …";
   try {
-    await setDoc(doc(db,"users",user.uid,"travel","test-day-"+date),data,{merge:true});
-    if (request === dayRequest) {dayActivities=editedCards;dayMode(false);el("dayStatus").textContent = "✓ In der Cloud gespeichert";}
+    const queue=dayQueue(user.uid);const base=queue[date]?.base||dayBase;const patch=Object.fromEntries(Object.entries(data).filter(([k,v])=>v!==dayValue(base,k)));if(!navigator.onLine||queue[date]){if(Object.keys(patch).length)queue[date]={base,patch};else delete queue[date];localStorage.setItem(dayQueueKey(user.uid),JSON.stringify(queue));if(request===dayRequest){dayActivities=JSON.parse(data.activityCards);dayMode(false);el("dayStatus").textContent="Lokal gespeichert – Abgleich offen.";}}else{await runTransaction(db,async tx=>{const ref=doc(db,"users",user.uid,"travel","test-day-"+date);const snap=await tx.get(ref);if(Object.keys(patch).some(k=>dayValue(snap.data(),k)!==dayValue(base,k)))throw Error("Datenkonflikt – bitte neu laden");if(Object.keys(patch).length)tx.set(ref,patch,{merge:true});});dayBase={...base,...patch};if(request===dayRequest){dayActivities=JSON.parse(data.activityCards);dayMode(false);el("dayStatus").textContent="✓ In der Cloud gespeichert";}}
   } catch(error) {
     if (request === dayRequest) el("dayStatus").textContent = "Speichern fehlgeschlagen: "+error.code;
   } finally {
@@ -1056,6 +1061,7 @@ el("saveDay").addEventListener("click", async () => {
       el("dayDate").disabled = false;
       renderDayList();
       dayControls(true);
+      if(navigator.onLine)syncDays();
     }
   }
 });
@@ -1244,7 +1250,7 @@ el("saveNotes").disabled = false;
 });
 
 el("logout").addEventListener("click", async () => {
-if(currentUser&&checkQueue(currentUser.uid).length){alert("Checklistenänderungen noch nicht synchronisiert.");return;}if(currentUser&&pendingNote(currentUser.uid)){alert("Es gibt eine noch nicht synchronisierte Notiz. Bitte zuerst synchronisieren oder den Text separat sichern.");return;}clearTimeout(offlineTimer);if(currentUser)localStorage.removeItem(offlineKey(currentUser.uid));await signOut(auth);
+if(currentUser&&Object.keys(dayQueue(currentUser.uid)).length){alert("Tagesentwürfe noch nicht synchronisiert.");return;}if(currentUser&&checkQueue(currentUser.uid).length){alert("Checklistenänderungen noch nicht synchronisiert.");return;}if(currentUser&&pendingNote(currentUser.uid)){alert("Es gibt eine noch nicht synchronisierte Notiz. Bitte zuerst synchronisieren oder den Text separat sichern.");return;}clearTimeout(offlineTimer);if(currentUser)localStorage.removeItem(offlineKey(currentUser.uid));await signOut(auth);
 });
 
 let offlineBusy=false,offlineTimer;function updateOfflineStatus(){const node=el("offlineState");if(!node)return;let stamp="";try{const raw=currentUser&&localStorage.getItem(offlineKey(currentUser.uid));if(raw)stamp=" · Offline-Kopie: "+new Date(JSON.parse(raw).createdAt).toLocaleString("de-DE");}catch(e){}node.textContent=(navigator.onLine?"Online":"Offline – nur lesen")+stamp;}function scheduleOffline(){clearTimeout(offlineTimer);offlineTimer=setTimeout(()=>{try{if(currentUser&&navigator.onLine&&localStorage.getItem(offlineKey(currentUser.uid)))prepareOffline();}catch(e){}},1500);}window.addEventListener("online",()=>{updateOfflineStatus();scheduleOffline();});window.addEventListener("offline",updateOfflineStatus);async function prepareOffline(){const user=currentUser;if(!user||!navigator.onLine||offlineBusy)return;offlineBusy=true;const b=el("offlinePrepare");b.disabled=true;el("backupStatus").textContent="Offline-Daten werden vorbereitet …";try{const keys=["test-notes","test-checklists","test-highlights","test-routes","test-bookings","test-accommodations"];for(let i=0;i<24;i++)keys.push("test-day-"+new Date(Date.UTC(2027,6,17+i)).toISOString().slice(0,10));const documents={};for(const key of keys){const snap=await getDocFromServer(doc(db,"users",user.uid,"travel",key));if(currentUser?.uid!==user.uid)throw Error("Anmeldung geändert");documents[key]=snap.exists()?snap.data():null;}if(currentUser?.uid!==user.uid)throw Error("Anmeldung geändert");localStorage.setItem(offlineKey(user.uid),JSON.stringify({createdAt:new Date().toISOString(),documents}));el("backupStatus").textContent="Offline-Daten auf diesem Gerät gespeichert. Letzter Datenabgleich: "+new Date().toLocaleString("de-DE")+" .";}catch(e){el("backupStatus").textContent="Offline-Vorbereitung fehlgeschlagen. Bitte Internet und Gerätespeicher prüfen.";}finally{b.disabled=false;offlineBusy=false;updateOfflineStatus();}}
