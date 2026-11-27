@@ -528,6 +528,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <p class="muted">Hier entsteht unsere Aufgabenliste.</p>
 </div>
 
+<div class="card"><h2>Datensicherung</h2><p>Gespeicherte Reisedaten als private JSON-Datei sichern.</p><button type="button" id="backupDownload">Sicherung herunterladen</button><p id="backupStatus" role="status"></p></div>
 <p id="connectionStatus" class="muted" role="status"></p>
 
 </section>
@@ -636,7 +637,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.12.5 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.13.0 · Testversion</footer>
 
 </main>
 
@@ -655,6 +656,7 @@ import {
 getFirestore,
 doc,
 getDoc,
+getDocFromServer,
 setDoc,
 runTransaction
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
@@ -1217,6 +1219,7 @@ el("logout").addEventListener("click", async () => {
 await signOut(auth);
 });
 
+el("backupDownload").onclick=async()=>{if(!currentUser){el("backupStatus").textContent="Bitte zuerst anmelden.";return;}const user=currentUser,button=el("backupDownload");button.disabled=true;el("backupStatus").textContent="Gespeicherte Daten werden gelesen …";try{const keys=["test-notes","test-checklists","test-highlights","test-routes","test-bookings","test-accommodations"];for(let i=0;i<24;i++){const date=new Date(Date.UTC(2027,6,17+i)).toISOString().slice(0,10);keys.push("test-day-"+date);}const docs={};for(const key of keys){const snap=await getDocFromServer(doc(db,"users",user.uid,"travel",key));if(currentUser?.uid!==user.uid)throw Error("Anmeldung geändert");if(snap.exists())docs[key]=snap.data();}const blob=new Blob([JSON.stringify({format:"kanada-2027-test-backup",version:1,createdAt:new Date().toISOString(),documents:docs},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="Kanada-2027-Sicherung-"+new Date().toISOString().slice(0,10)+".json";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);el("backupStatus").textContent=Object.keys(docs).length+" gespeicherte Dokumente exportiert. Datei bitte privat aufbewahren.";}catch(e){el("backupStatus").textContent="Sicherung nicht erstellt. Bitte Internetverbindung und Anmeldung prüfen.";}finally{button.disabled=false;}};
 </script>
 </body>
 </html>
