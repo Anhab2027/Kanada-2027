@@ -1,0 +1,6 @@
+const CACHE="kanada-test-shell-v1";
+const shell=new URL("./index.html",self.location.href).href;
+const sdk=["firebase-app.js","firebase-auth.js","firebase-firestore.js"].map(x=>"https://www.gstatic.com/firebasejs/11.10.0/"+x);
+self.addEventListener("install",e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll([shell,...sdk]);await self.skipWaiting();})()));
+self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));
+self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(e.request.method!=="GET")return;if(e.request.mode==="navigate"&&u.origin===self.location.origin&&u.pathname.startsWith(new URL("./",self.location.href).pathname)){e.respondWith(fetch(e.request).catch(()=>caches.match(shell)));return;}if(u.origin==="https://www.gstatic.com"&&u.pathname.startsWith("/firebasejs/11.10.0/")&&u.pathname.endsWith(".js")){e.respondWith((async()=>{const c=await caches.open(CACHE);const hit=await c.match(e.request);if(hit)return hit;const r=await fetch(e.request);if(r.ok)await c.put(e.request,r.clone());return r;})());}});
