@@ -632,7 +632,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 <h2>📝 Reisenotizen</h2>
 <div id="topicList"></div><button id="topicAdd" type="button" disabled>＋ Notiz hinzufügen</button><form id="topicForm" hidden><label for="topicTitle">Überschrift</label><input id="topicTitle" required maxlength="160"><label for="topicText">Notiz</label><textarea id="topicText" maxlength="30000"></textarea><div class="form-actions"><button type="submit">Speichern</button><button id="topicCancel" type="button" class="link">Abbrechen</button></div></form><p id="topicStatus" role="status"></p><h3>Bisherige Reisenotizen</h3><textarea id="noteText" placeholder="Unsere Reisenotizen …" disabled></textarea>
 <div id="legacyNoteLinks" class="day-links"></div><button id="saveNotes" disabled>Notizen speichern</button>
-<p id="noteStatus" class="muted" role="status"></p>
+<p id="noteStatus" class="muted" role="status"></p><div id="noteConflict" hidden><h3>Notiz-Konflikt</h3><p>Cloud-Version (nur lesen)</p><textarea id="noteRemote" readonly></textarea><p>Dein lokaler Entwurf steht im Notizfeld. Du kannst beide Texte dort zusammenführen.</p><button type="button" id="noteResolve">Bearbeiteten Text übernehmen</button><button type="button" id="noteRetry">Erneut prüfen</button></div>
 </div>
 <button class="link" data-go="overview">← Zurück zur Übersicht</button>
 <button id="logout">Abmelden</button>
@@ -640,7 +640,7 @@ input[type="date"]::-webkit-date-and-time-value,input[type="time"]::-webkit-date
 
 </div>
 
-<footer>Kanada 2027 · Version 1.17.0 · Testversion</footer>
+<footer>Kanada 2027 · Version 1.17.1 · Testversion</footer>
 
 </main>
 
@@ -1121,6 +1121,7 @@ el("loginButton").disabled = false;
 onAuthStateChanged(auth, async user => {
 
 currentUser = user;
+noteConflictBase=null;el("noteConflict").hidden=true;el("noteRemote").value="";
 updateOfflineStatus();scheduleOffline();
 diReset();
 loadChecks(user);
@@ -1190,11 +1191,13 @@ el("loginStatus").textContent = "Bitte melde dich an.";
 
 });
 
-let noteBase="",noteSyncBusy=false;
+let noteBase="",noteSyncBusy=false,noteConflictBase=null;
 const pendingNoteKey=uid=>"kanada-test-pending-note:"+uid;
 function pendingNote(uid){try{return JSON.parse(localStorage.getItem(pendingNoteKey(uid))||"null");}catch(e){return null;}}
-async function syncPendingNote(){const user=currentUser;if(!user||!navigator.onLine||noteSyncBusy)return;const pending=pendingNote(user.uid);if(!pending)return;noteSyncBusy=true;try{const ref=doc(db,"users",user.uid,"travel","test-notes");const ok=await runTransaction(db,async tx=>{const snap=await tx.get(ref);const remote=snap.data()?.text||"";if(remote!==pending.base&&remote!==pending.text)return false;if(remote!==pending.text)tx.set(ref,{text:pending.text},{merge:true});return true;});if(currentUser?.uid!==user.uid)return;if(ok){if(pendingNote(user.uid)?.text===pending.text)localStorage.removeItem(pendingNoteKey(user.uid));noteBase=pending.text;el("noteStatus").textContent="✓ Offline-Notiz synchronisiert";}else{el("noteStatus").textContent="Konflikt: Cloud-Notiz wurde geändert. Lokaler Entwurf bleibt erhalten. Bitte Text separat sichern; kein automatisches Überschreiben.";} }catch(e){if(currentUser?.uid===user.uid)el("noteStatus").textContent="Offline-Entwurf bleibt gespeichert; Synchronisierung noch offen.";}finally{noteSyncBusy=false;}}
+async function syncPendingNote(){const user=currentUser;if(!user||!navigator.onLine||noteSyncBusy)return;const pending=pendingNote(user.uid);if(!pending)return;noteSyncBusy=true;try{const ref=doc(db,"users",user.uid,"travel","test-notes");let conflictRemote=null;const ok=await runTransaction(db,async tx=>{const snap=await tx.get(ref);const remote=snap.data()?.text||"";if(remote!==pending.base&&remote!==pending.text){conflictRemote=remote;return false;}if(remote!==pending.text)tx.set(ref,{text:pending.text},{merge:true});return true;});if(currentUser?.uid!==user.uid)return;if(ok){if(pendingNote(user.uid)?.text===pending.text)localStorage.removeItem(pendingNoteKey(user.uid));noteBase=pending.text;noteConflictBase=null;el("noteConflict").hidden=true;el("noteStatus").textContent="✓ Offline-Notiz synchronisiert";}else{noteConflictBase={uid:user.uid,text:conflictRemote};el("noteRemote").value=conflictRemote;el("noteConflict").hidden=false;el("noteStatus").textContent="Konflikt: Beide Versionen bleiben erhalten.";} }catch(e){if(currentUser?.uid===user.uid)el("noteStatus").textContent="Offline-Entwurf bleibt gespeichert; Synchronisierung noch offen.";}finally{noteSyncBusy=false;}}
 window.addEventListener("online",syncPendingNote);
+el("noteRetry").onclick=syncPendingNote;
+el("noteResolve").onclick=()=>{const user=currentUser,c=noteConflictBase;if(!user||c?.uid!==user.uid||noteSyncBusy||!navigator.onLine)return;if(!confirm("Den Text im Notizfeld als gemeinsame Version speichern?"))return;try{localStorage.setItem(pendingNoteKey(user.uid),JSON.stringify({base:c.text,text:el("noteText").value}));syncPendingNote();}catch(e){el("noteStatus").textContent="Lokales Speichern fehlgeschlagen.";}};
 el("saveNotes").addEventListener("click", async () => {
 
 if(!currentUser) return;
